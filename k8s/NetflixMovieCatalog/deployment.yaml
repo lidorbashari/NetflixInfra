@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: catalog
-        image: lidorbashari/netflix-movie-catalog:latest
+        image: lidorbashari/netflixmoviecatalog:latest
         ports:
         - containerPort: 8080
 ---
