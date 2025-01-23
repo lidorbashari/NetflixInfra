@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: frontend
 spec:
-  replicas: 2
+  replicas: 2 
   selector:
     matchLabels:
       app: frontend
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: lidorbashari/nf:1.0.5
+        image: lidorbashari/netflix-fronted:1.0.5
         ports:
         - containerPort: 3000
         env:
