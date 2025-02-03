@@ -24,6 +24,7 @@ spec:
               value: https://sqs.eu-north-1.amazonaws.com/352708296901/lidor-netflix-events
             - name: AWS_REGION
               value: eu-north-1
+
 ---
 
 apiVersion: v1
