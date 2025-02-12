@@ -7,7 +7,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: lidor-k8s-lb-1195789013.eu-north-1.elb.amazonaws.com
+  - host: lidor-k8s-lb-new-839386532.eu-north-1.elb.amazonaws.com
     http:
       paths:
       - path: /
