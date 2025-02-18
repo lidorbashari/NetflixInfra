@@ -39,9 +39,9 @@ jobs:
       - name: Create tfvars file for prod
         if: ${{ github.event.inputs.environment == 'prod' }}
         run: |
-          echo "env = \"prod\"" > region.${{ github.event.inputs.region }}.prod.tfvars
-          echo "region = \"${{ github.event.inputs.region }}\"" >> region.${{ github.event.inputs.region }}.prod.tfvars
-          echo "ami_id = \"${{ secrets.EU_NORTH_1_TFVARS_PROD }}" >> region.${{ github.event.inputs.region }}.prod.tfvars
+          printf "env = \"prod\"\n" > region.${{ github.event.inputs.region }}.prod.tfvars
+          printf "region = \"${{ github.event.inputs.region }}\"\n" >> region.${{ github.event.inputs.region }}.prod.tfvars
+          printf "ami_id = \"${{ secrets.EU_NORTH_1_TFVARS_PROD }}\"\n" >> region.${{ github.event.inputs.region }}.prod.tfvars
         working-directory: ./tf
 
 
