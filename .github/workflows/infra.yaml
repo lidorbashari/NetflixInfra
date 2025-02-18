@@ -63,7 +63,7 @@ jobs:
         working-directory: ./tf
 
       - name: Terraform Plan
-        run: TF_LOG=DEBUG terraform plan -var="environment=${{ github.event.inputs.environment }}" -var="region=${{ github.event.inputs.region }}"
+        run: TF_LOG=DEBUG terraform plan -var-file=$PATH_TF/region.${{ github.event.inputs.region }}.${{ github.event.inputs.environment }}.tfvars
         working-directory: ./tf
 
       - name: Terraform Plan Check
