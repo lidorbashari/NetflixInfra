@@ -75,5 +75,5 @@ jobs:
         working-directory: ./tf
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -var="environment=${{ github.event.inputs.environment }}" -var="region=${{ github.event.inputs.region }}"
+        run: terraform apply -auto-approve -var-file=region.${{ github.event.inputs.region }}.${{ github.event.inputs.environment }}.tfvars
         working-directory: ./tf
