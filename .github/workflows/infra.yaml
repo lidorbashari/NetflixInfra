@@ -39,13 +39,17 @@ jobs:
       - name: Create tfvars file for prod
         if: ${{ github.event.inputs.environment == 'prod' }}
         run: |
-          echo "${{ secrets.EU_NORTH_1_TFVARS_PROD }}" > region.${{ github.event.inputs.region }}.prod.tfvars
+          echo "env = \"prod\"" > region.${{ github.event.inputs.region }}.prod.tfvars
+          echo "region = \"${{ github.event.inputs.region }}\"" >> region.${{ github.event.inputs.region }}.prod.tfvars
+          echo "ami_id = \"${{ secrets.AMI_ID_PROD }}\"" >> region.${{ github.event.inputs.region }}.prod.tfvars
         working-directory: ./tf
 
       - name: Create tfvars file for dev
         if: ${{ github.event.inputs.environment == 'dev' }}
         run: |
-          echo "${{ secrets.EU_WEST_1_TFVARS_DEV }}" > region.${{ github.event.inputs.region }}.dev.tfvars
+          echo "env = \"dev\"" > region.${{ github.event.inputs.region }}.dev.tfvars
+          echo "region = \"${{ github.event.inputs.region }}\"" >> region.${{ github.event.inputs.region }}.dev.tfvars
+          echo "ami_id = \"${{ secrets.AMI_ID_DEV }}\"" >> region.${{ github.event.inputs.region }}.dev.tfvars
         working-directory: ./tf
 
       - name: Terraform Init
