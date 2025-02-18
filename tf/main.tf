@@ -19,7 +19,7 @@ terraform {
 provider "aws" {
   #  region  = "eu-north-1"
   region  = var.region
-  profile = "default" # change in case you want to work with another AWS account profile
+  profile = "default" # change in case you want to work with another AWS account profile!
 }
 
 resource "aws_instance" "netflix_app" {
