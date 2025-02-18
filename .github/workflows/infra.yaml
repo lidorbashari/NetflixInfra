@@ -36,6 +36,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ github.event.inputs.region }}
 
+      - name: Create tf directory
+        run: mkdir -p tf
+
       - name: Create tfvars file for prod
         run: |
           echo "$EU_NORTH_1_TFVARS_PROD" > tf/prod.tfvars
