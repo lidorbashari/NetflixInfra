@@ -36,19 +36,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ github.event.inputs.region }}
 
-      - name: Create tf directory
-        run: mkdir -p tf
-
       - name: Create tfvars file for prod
-        run: |
-          echo "$EU_NORTH_1_TFVARS_PROD" > prod.tfvars
         if: ${{ github.event.inputs.environment == 'prod' }}
+        run: |
+          echo "${{ secrets.EU_NORTH_1_TFVARS_PROD }}" > region.${{ github.event.inputs.region }}.prod.tfvars
         working-directory: ./tf
 
       - name: Create tfvars file for dev
-        run: |
-          echo "$EU_WEST_1_TFVARS_DEV" > dev.tfvars
         if: ${{ github.event.inputs.environment == 'dev' }}
+        run: |
+          echo "${{ secrets.EU_WEST_1_TFVARS_DEV }}" > region.${{ github.event.inputs.region }}.dev.tfvars
         working-directory: ./tf
 
       - name: Terraform Init
@@ -66,7 +63,7 @@ jobs:
         working-directory: ./tf
 
       - name: Terraform Plan
-        run: TF_LOG=DEBUG terraform plan -var-file=./tf/region.${{ github.event.inputs.region }}.${{ github.event.inputs.environment }}.tfvars
+        run: TF_LOG=DEBUG terraform plan -var-file=region.${{ github.event.inputs.region }}.${{ github.event.inputs.environment }}.tfvars
         working-directory: ./tf
 
       - name: Terraform Plan Check
