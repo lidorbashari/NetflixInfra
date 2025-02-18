@@ -44,13 +44,15 @@ jobs:
           echo "ami_id = \"${{ secrets.EU_NORTH_1_TFVARS_PROD }}" >> region.${{ github.event.inputs.region }}.prod.tfvars
         working-directory: ./tf
 
+
       - name: Create tfvars file for dev
         if: ${{ github.event.inputs.environment == 'dev' }}
         run: |
-          echo "env = \"dev\"" > region.${{ github.event.inputs.region }}.dev.tfvars
-          echo "region = \"${{ github.event.inputs.region }}\"" >> region.${{ github.event.inputs.region }}.dev.tfvars
-          echo "ami_id = \"${{ secrets.EU_WEST_1_TFVARS_DEV }}" >> region.${{ github.event.inputs.region }}.dev.tfvars
+          printf "env = \"dev\"\n" > region.${{ github.event.inputs.region }}.dev.tfvars
+          printf "region = \"${{ github.event.inputs.region }}\"\n" >> region.${{ github.event.inputs.region }}.dev.tfvars
+          printf "ami_id = \"${{ secrets.EU_WEST_1_TFVARS_DEV }}\"\n" >> region.${{ github.event.inputs.region }}.dev.tfvars
         working-directory: ./tf
+
 
 
       - name: Terraform Init
