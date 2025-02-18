@@ -38,13 +38,13 @@ jobs:
 
       - name: Create tfvars file for prod
         run: |
-          echo "$EU_NORTH_1_TFVARS_PROD" > terraform/prod.tfvars
+          echo "$EU_NORTH_1_TFVARS_PROD" > prod.tfvars
         if: ${{ github.event.inputs.environment == 'prod' }}
         working-directory: ./tf
 
       - name: Create tfvars file for dev
         run: |
-          echo "$EU_WEST_1_TFVARS_DEV" > terraform/dev.tfvars
+          echo "$EU_WEST_1_TFVARS_DEV" > dev.tfvars
         if: ${{ github.event.inputs.environment == 'dev' }}
         working-directory: ./tf
 
