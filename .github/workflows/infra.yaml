@@ -42,6 +42,7 @@ jobs:
           echo "env = \"prod\"" > region.${{ github.event.inputs.region }}.prod.tfvars
           echo "region = \"${{ github.event.inputs.region }}\"" >> region.${{ github.event.inputs.region }}.prod.tfvars
           echo "ami_id = \"${{ secrets.AMI_ID_PROD }}\"" >> region.${{ github.event.inputs.region }}.prod.tfvars
+          cat region.${{ github.event.inputs.region }}.prod.tfvars  # הדפסת תוכן קובץ tfvars לצורך דיבוג
         working-directory: ./tf
 
       - name: Create tfvars file for dev
@@ -50,7 +51,9 @@ jobs:
           echo "env = \"dev\"" > region.${{ github.event.inputs.region }}.dev.tfvars
           echo "region = \"${{ github.event.inputs.region }}\"" >> region.${{ github.event.inputs.region }}.dev.tfvars
           echo "ami_id = \"${{ secrets.AMI_ID_DEV }}\"" >> region.${{ github.event.inputs.region }}.dev.tfvars
+          cat region.${{ github.event.inputs.region }}.dev.tfvars  # הדפסת תוכן קובץ tfvars לצורך דיבוג
         working-directory: ./tf
+
 
       - name: Terraform Init
         run: terraform init
