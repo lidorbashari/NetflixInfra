@@ -41,8 +41,7 @@ jobs:
         run: |
           echo "env = \"prod\"" > region.${{ github.event.inputs.region }}.prod.tfvars
           echo "region = \"${{ github.event.inputs.region }}\"" >> region.${{ github.event.inputs.region }}.prod.tfvars
-          echo "ami_id = \"${{ secrets.AMI_ID_PROD }}\"" >> region.${{ github.event.inputs.region }}.prod.tfvars
-          cat region.${{ github.event.inputs.region }}.prod.tfvars  # הדפסת תוכן קובץ tfvars לצורך דיבוג
+          echo "ami_id = \"${{ secrets.EU_NORTH_1_TFVARS_PROD }}" >> region.${{ github.event.inputs.region }}.prod.tfvars
         working-directory: ./tf
 
       - name: Create tfvars file for dev
@@ -50,8 +49,7 @@ jobs:
         run: |
           echo "env = \"dev\"" > region.${{ github.event.inputs.region }}.dev.tfvars
           echo "region = \"${{ github.event.inputs.region }}\"" >> region.${{ github.event.inputs.region }}.dev.tfvars
-          echo "ami_id = \"${{ secrets.AMI_ID_DEV }}\"" >> region.${{ github.event.inputs.region }}.dev.tfvars
-          cat region.${{ github.event.inputs.region }}.dev.tfvars  # הדפסת תוכן קובץ tfvars לצורך דיבוג
+          echo "ami_id = \"${{ secrets.EU_WEST_1_TFVARS_DEV }}" >> region.${{ github.event.inputs.region }}.dev.tfvars
         working-directory: ./tf
 
 
@@ -70,7 +68,7 @@ jobs:
         working-directory: ./tf
 
       - name: Terraform Plan
-        run: TF_LOG=DEBUG terraform plan -var-file=region.${{ github.event.inputs.region }}.${{ github.event.inputs.environment }}.tfvars
+        run: terraform plan -var-file=region.${{ github.event.inputs.region }}.${{ github.event.inputs.environment }}.tfvars
         working-directory: ./tf
 
       - name: Terraform Plan Check
@@ -78,5 +76,5 @@ jobs:
         working-directory: ./tf
 
       - name: Terraform Apply
-        run: TF_LOG=DEBUG terraform apply -auto-approve -var-file=region.${{ github.event.inputs.region }}.${{ github.event.inputs.environment }}.tfvars
+        run: terraform apply -auto-approve -var-file=region.${{ github.event.inputs.region }}.${{ github.event.inputs.environment }}.tfvars
         working-directory: ./tf
