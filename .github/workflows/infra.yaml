@@ -45,7 +45,7 @@ jobs:
         working-directory: ./tf
 
       - name: Terraform Plan Output
-        run: terraform show -no-color tfplan > plan.txt
+        run: terraform show tfplan > plan.txt
         working-directory: ./tf
 
       - name: Upload Plan as Artifact
