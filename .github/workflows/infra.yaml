@@ -63,7 +63,13 @@ jobs:
       url: https://github.com/${{ github.repository }}
     steps:
       - name: Wait for manual approval
-        run: echo "wait for manual approval!"
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: lidorbashari
+          minimum-approvals: 1
+          issue-title: "Manual Approval Required for Terraform Apply"
+          issue-body: "Please approve or deny the deployment."
 
   apply:
     needs: manual-approval
