@@ -60,13 +60,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for manual approval
-        run: |
-          echo "Do you approve the changes? (yes/no)"
-          read approval
-          if [ "$approval" != "yes" ]; then
-            echo "Approval denied. Exiting."
-            exit 1
-          fi
+        uses: peter-evans/workflow-dispatch@v1
+        with:
+          workflow: 'Deploy Infrastructure'
+          inputs:
+            approve_apply: 'yes'
 
   apply:
     needs: manual-approval
