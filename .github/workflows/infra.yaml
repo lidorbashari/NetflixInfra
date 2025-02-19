@@ -58,13 +58,10 @@ jobs:
   manual-approval:
     needs: infra_terraform
     runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
     steps:
       - name: Wait for manual approval
-        uses: peter-evans/workflow-dispatch@v1
-        with:
-          workflow: 'Deploy Infrastructure'
-          inputs:
-            approve_apply: 'yes'
+        run: echo "Waiting for approval to proceed with apply"
 
   apply:
     needs: manual-approval
