@@ -56,14 +56,17 @@ jobs:
           retention-days: 1
 
   manual-approval:
-    needs: infra_terraform  # תיקון השם של התלות
+    needs: infra_terraform
     runs-on: ubuntu-latest
     steps:
       - name: Wait for manual approval
-        uses: hmarr/auto-approve-action@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}  # שימוש בטוקן מובנה
-        timeout-minutes: 30
+        run: |
+          echo "Do you approve the changes? (yes/no)"
+          read approval
+          if [ "$approval" != "yes" ]; then
+            echo "Approval denied. Exiting."
+            exit 1
+          fi
 
   apply:
     needs: manual-approval
