@@ -36,37 +36,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ github.event.inputs.region }}
 
-      - name: Create tfvars file for prod
-        if: ${{ github.event.inputs.environment == 'prod' }}
-        run: |
-          echo 'env = "prod"' > region.${{ github.event.inputs.region }}.prod.tfvars
-          echo 'region = "'${{ github.event.inputs.region }}'"' >> region.${{ github.event.inputs.region }}.prod.tfvars
-          echo 'ami_id = "'${{ secrets.EU_NORTH_1_TFVARS_PROD }}'"' >> region.${{ github.event.inputs.region }}.prod.tfvars
-        working-directory: ./tf
-
-      - name: Create tfvars file for dev
-        if: ${{ github.event.inputs.environment == 'dev' }}
-        run: |
-          echo 'env = "dev"' > region.${{ github.event.inputs.region }}.dev.tfvars
-          echo 'region = "'${{ github.event.inputs.region }}'"' >> region.${{ github.event.inputs.region }}.dev.tfvars
-          echo 'ami_id = "'${{ secrets.EU_WEST_1_TFVARS_DEV }}'"' >> region.${{ github.event.inputs.region }}.dev.tfvars
-        working-directory: ./tf
-
-
-
       - name: Terraform Init
         run: terraform init
         working-directory: ./tf
 
-      - name: Terraform workspace
-        run: |
-          WORKSPACE_NAME="${{ github.event.inputs.region }}.${{ github.event.inputs.environment }}"
-          if terraform workspace list | grep -q "$WORKSPACE_NAME"; then
-            terraform workspace select $WORKSPACE_NAME
-          else
-            terraform workspace new $WORKSPACE_NAME
-          fi
-        working-directory: ./tf
 
       - name: Terraform Plan
         run: terraform plan -var-file=region.${{ github.event.inputs.region }}.${{ github.event.inputs.environment }}.tfvars
