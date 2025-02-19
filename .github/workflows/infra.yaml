@@ -58,7 +58,6 @@ jobs:
   manual-approval:
     needs: infra_terraform
     runs-on: ubuntu-latest
-    # חייב להגדיר Environment ב-GitHub עם "Required reviewers"!
     environment:
       name: ${{ github.event.inputs.environment }}
       url: https://github.com/${{ github.repository }}
