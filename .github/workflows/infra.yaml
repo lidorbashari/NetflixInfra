@@ -58,10 +58,13 @@ jobs:
   manual-approval:
     needs: infra_terraform
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
+    # חייב להגדיר Environment ב-GitHub עם "Required reviewers"!
+    environment:
+      name: ${{ github.event.inputs.environment }}
+      url: https://github.com/${{ github.repository }}
     steps:
       - name: Wait for manual approval
-        run: echo "Waiting for approval to proceed with apply"
+        run: echo "wait for manual approval!"
 
   apply:
     needs: manual-approval
