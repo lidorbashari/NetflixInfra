@@ -42,11 +42,45 @@ jobs:
 
 
       - name: Terraform Plan
-        run: terraform plan -var-file=region.${{ github.event.inputs.region }}.${{ github.event.inputs.environment }}.tfvars
+        run: terraform plan -var-file=region.${{ github.event.inputs.region }}.${{ github.event.inputs.environment }}.tfvars -out=tfplan
         working-directory: ./tf
 
-      - name: Terraform Plan Check
-        run: terraform validate
+      - name: Terraform Plan Output
+        run: terraform show -no-color tfplan > plan.txt
+
+      - name: Upload Plan as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: plan.txt
+          retention-days: 1
+
+  manual-approval:
+    needs: terraform
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for manual approval
+        uses: hmarr/auto-approve-action@v3
+        with:
+          github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        timeout-minutes: 30
+
+  apply:
+    needs: manual-approval
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        run: terraform init
         working-directory: ./tf
 
       - name: Terraform Apply
