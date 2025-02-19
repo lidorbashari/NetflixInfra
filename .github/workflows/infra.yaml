@@ -40,29 +40,29 @@ jobs:
         run: terraform init
         working-directory: ./tf
 
-
       - name: Terraform Plan
         run: terraform plan -var-file=region.${{ github.event.inputs.region }}.${{ github.event.inputs.environment }}.tfvars -out=tfplan
         working-directory: ./tf
 
       - name: Terraform Plan Output
         run: terraform show -no-color tfplan > plan.txt
+        working-directory: ./tf
 
       - name: Upload Plan as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: terraform-plan
-          path: plan.txt
+          path: ./tf/plan.txt
           retention-days: 1
 
   manual-approval:
-    needs: terraform
+    needs: infra_terraform  # תיקון השם של התלות
     runs-on: ubuntu-latest
     steps:
       - name: Wait for manual approval
         uses: hmarr/auto-approve-action@v3
         with:
-          github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}  # שימוש בטוקן מובנה
         timeout-minutes: 30
 
   apply:
@@ -79,9 +79,22 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ github.event.inputs.region }}
+
       - name: Terraform Init
         run: terraform init
         working-directory: ./tf
+
+      - name: Download Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
+          path: ./tf
 
       - name: Terraform Apply
         run: terraform apply -auto-approve -var-file=region.${{ github.event.inputs.region }}.${{ github.event.inputs.environment }}.tfvars
