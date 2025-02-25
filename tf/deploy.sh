@@ -66,6 +66,8 @@ sudo git clone https://github.com/lidorbashari/NetflixInfra.git
 cd NetflixInfra
 sudo cp /home/ubuntu/prometheus.yml /mnt/docker/prometheus.yml
 sudo cp /home/ubuntu/nginx.conf /mnt/docker/nginx.conf
+sudo cp /home/ubuntu/NetflixInfra/provisioning/datasources/prometheus.yml /mnt/docker/grafana/provisioning/datasources/prometheus.yml
+
 
 # הורדת קובץ Docker Compose והפעלתו
 sudo curl -L "https://raw.githubusercontent.com/lidorbashari/NetflixInfra/main/docker-compose.yaml" -o /mnt/docker/docker-compose.yml
