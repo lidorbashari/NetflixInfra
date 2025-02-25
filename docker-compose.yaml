@@ -47,7 +47,7 @@ services:
     networks:
       - private_network2
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro # Make sure the file is read-only
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml:ro # Make sure the file is read-only
       - prometheus-data:/prometheus
     ports:
       - "9090:9090"

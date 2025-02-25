@@ -20,15 +20,16 @@ sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-
 sudo chmod +x /usr/local/bin/docker-compose
 
 # חיבור ווליום EBS והכנת תיקיות
-sudo mkfs.ext4 /dev/xvdf
+sudo mkfs.ext4 /dev/nvme1n1
 sudo mkdir -p /mnt/ebs
-sudo mount /dev/xvdf /mnt/ebs
+sudo mount /dev/nvme1n1 /mnt/ebs
 sudo chown -R ubuntu:ubuntu /mnt/ebs
 sudo chmod -R 777 /mnt/ebs
 sudo mkdir -p /mnt/ebs/catalog-data /mnt/ebs/prometheus-data /mnt/ebs/grafana-data /mnt/docker
 
+
 # יצירת קובץ Prometheus configuration
-cat << EOF > /home/ubuntu/prometheus.yml
+cat << EOF > /home/ubuntu/prometheus.yaml
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
@@ -64,12 +65,12 @@ EOF
 # שיבוט מאגר Git והעתקת קבצים למיקום הנכון
 sudo git clone https://github.com/lidorbashari/NetflixInfra.git
 cd NetflixInfra
-sudo cp /home/ubuntu/prometheus.yml /mnt/docker/prometheus.yml
+sudo cp /home/ubuntu/prometheus.yaml /mnt/docker/prometheus.yaml
 sudo cp /home/ubuntu/nginx.conf /mnt/docker/nginx.conf
-sudo cp /home/ubuntu/NetflixInfra/provisioning/datasources/prometheus.yml /mnt/docker/grafana/provisioning/datasources/prometheus.yml
+sudo cp /home/ubuntu/NetflixInfra/provisioning/datasources/prometheus.yaml /mnt/docker/grafana/provisioning/datasources/prometheus.yaml
 
 
 # הורדת קובץ Docker Compose והפעלתו
-sudo curl -L "https://raw.githubusercontent.com/lidorbashari/NetflixInfra/main/docker-compose.yaml" -o /mnt/docker/docker-compose.yml
+sudo curl -L "https://raw.githubusercontent.com/lidorbashari/NetflixInfra/main/docker-compose.yaml" -o /mnt/docker/docker-compose.yaml
 cd /mnt/docker
 sudo docker-compose up -d
