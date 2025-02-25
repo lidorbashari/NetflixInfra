@@ -31,7 +31,7 @@ resource "aws_ebs_volume" "lidor_netflix_app_volume" {
 }
 
 resource "aws_volume_attachment" "netflix_data_attach" {
-  device_name = "/dev/xvdf"
+  device_name = "/dev/sdf"
   volume_id   = aws_ebs_volume.lidor_netflix_app_volume.id
   instance_id = aws_instance.netflix_app.id
 }

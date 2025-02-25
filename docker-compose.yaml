@@ -33,15 +33,13 @@ services:
       - private_network
     volumes:
       - catalog-data:/data
-    """
-        command: >
+    command: >
       sh -c "
-        apt-get update && 
-        apt-get install -y python3-pip && 
-        pip3 install boto3 && 
+        apt-get update &&
+        apt-get install -y python3-pip &&
+        pip3 install boto3 &&
         python3 /app/app.py
       "
-    """
 
   prometheus:
     image: prom/prometheus:latest

@@ -23,6 +23,8 @@ sudo chmod +x /usr/local/bin/docker-compose
 sudo mkfs.ext4 /dev/xvdf
 sudo mkdir -p /mnt/ebs
 sudo mount /dev/xvdf /mnt/ebs
+sudo chown -R ubuntu:ubuntu /mnt/ebs
+sudo chmod -R 777 /mnt/ebs
 sudo mkdir -p /mnt/ebs/catalog-data /mnt/ebs/prometheus-data /mnt/ebs/grafana-data /mnt/docker
 
 # יצירת קובץ Prometheus configuration
