@@ -31,7 +31,7 @@ resource "aws_ebs_volume" "lidor_netflix_app_volume" {
 }
 
 resource "aws_volume_attachment" "netflix_data_attach" {
-  device_name = "/dev/sdf"
+  device_name = "/dev/xvdh"
   volume_id   = aws_ebs_volume.lidor_netflix_app_volume.id
   instance_id = aws_instance.netflix_app.id
 }
@@ -55,6 +55,20 @@ resource "aws_security_group" "netflix_app_sg" {
   ingress {
     from_port   = 80
     to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 3001
+    to_port     = 3001
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
