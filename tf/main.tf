@@ -6,6 +6,7 @@ terraform {
     }
   }
 
+
   backend "s3" {
     bucket = "lidor-netflix-infra-tfstate"
     key    = "tfstate.json"
@@ -27,6 +28,12 @@ resource "aws_ebs_volume" "lidor_netflix_app_volume" {
   tags = {
     Name = "netflix_app_volume"
   }
+}
+
+resource "aws_volume_attachment" "netflix_data_attach" {
+  device_name = "/dev/xvdf"
+  volume_id   = aws_ebs_volume.lidor_netflix_app_volume.id
+  instance_id = aws_instance.netflix_app.id
 }
 
 resource "aws_key_pair" "my_key" {
@@ -64,14 +71,17 @@ resource "aws_security_group" "netflix_app_sg" {
 resource "aws_instance" "netflix_app" {
   ami             = var.ami_id
   instance_type   = "t3.micro"
-  security_groups = [aws_security_group.netflix_app_sg.name]
+  vpc_security_group_ids = [aws_security_group.netflix_app_sg.id]
   key_name        = aws_key_pair.my_key.key_name
-  user_data = file("./deploy.sh")
+  user_data       = file("./deploy.sh")
+  availability_zone = "eu-north-1a"
+  #subnet_id = module.netflix_app_vpc.public_subnets[0]
 
   ebs_block_device {
     device_name           = "/dev/sdf"
     volume_size           = 5
     delete_on_termination = true
+
   }
 
   tags = {
@@ -80,7 +90,6 @@ resource "aws_instance" "netflix_app" {
     Env       = var.env
   }
 }
-
 
 
 

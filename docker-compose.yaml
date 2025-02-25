@@ -12,8 +12,9 @@ services:
       - netflix-frontend
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+
   netflix-frontend:
-    image: lidorbashari/nf:1.0.5
+    image: lidorbashari/netflix-frontend:4
     container_name: netflix-frontend
     ports:
       - "3000:3000"
@@ -24,40 +25,47 @@ services:
       - netflix-catalog
     environment:
       MOVIE_CATALOG_SERVICE: http://netflix-catalog:8080
+
   netflix-catalog:
-    image: lidorbashari/netflixmoviecatalog:latest
+    image: lidorbashari/netflix-movie-catalog:26
     container_name: netflix-catalog
     networks:
       - private_network
     volumes:
-      - catalog-data:/data # Persist Netflix catalog data to a volume
+      - catalog-data:/data
+    """
+        command: >
+      sh -c "
+        apt-get update && 
+        apt-get install -y python3-pip && 
+        pip3 install boto3 && 
+        python3 /app/app.py
+      "
+    """
+
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
     networks:
       - private_network2
     volumes:
-      - /home/ubuntu/prometheus.yml:/etc/prometheus/prometheus.yml:ro # Make sure the file is read-only
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro # Make sure the file is read-only
       - prometheus-data:/prometheus
     ports:
       - "9090:9090"
-      #entrypoint: >
-      #  sh -c "chown -R 65534:65534 /prometheus &&
-      #  exec /bin/prometheus"
-      #
+
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
+    user: "472"
     networks:
       - private_network2
     ports:
-      - "3001:3000" # Adjust port if frontend is using 3000
+      - "3001:3000"
     volumes:
-      - grafana-data:/var/lib/grafana # Persist Grafana data to a volume
+      - grafana-data:/var/lib/grafana
     depends_on:
       - prometheus
-    entrypoint: >
-      sh -c "chown -R 472:472 /var/lib/grafana &&  exec /run.sh"
 
   availability-agent:
     image: lidorbashari/availabilityagent:latest
@@ -70,6 +78,7 @@ services:
       - prometheus
     environment:
       MONITORED_HOST: http://netflix-frontend:3000
+
 networks:
   public_network:
     driver: bridge
@@ -77,6 +86,7 @@ networks:
     driver: bridge
   private_network2:
     driver: bridge
+
 volumes:
   catalog-data:
     driver_opts:
