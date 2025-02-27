@@ -83,12 +83,12 @@ resource "aws_security_group" "netflix_app_sg" {
 
 
 resource "aws_instance" "netflix_app" {
-  ami             = var.ami_id
-  instance_type   = "t3.micro"
+  ami                    = var.ami_id
+  instance_type          = "t3.micro"
   vpc_security_group_ids = [aws_security_group.netflix_app_sg.id]
-  key_name        = aws_key_pair.my_key.key_name
-  user_data       = file("./deploy.sh")
-  availability_zone = "eu-north-1a"
+  key_name               = aws_key_pair.my_key.key_name
+  user_data              = file("./deploy.sh")
+  availability_zone      = "eu-north-1a"
   #subnet_id = module.netflix_app_vpc.public_subnets[0]
 
   ebs_block_device {

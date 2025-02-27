@@ -15,6 +15,6 @@ variable "ami_id" {
 
 
 #variable "vpc_azs" {
- # description = "A-Z list"
-  #type        = list(string)
+# description = "A-Z list"
+#type        = list(string)
 #}
