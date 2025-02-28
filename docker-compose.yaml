@@ -1,3 +1,4 @@
+version: "3.8"
 services:
   nginx:
     image: nginx:latest
@@ -61,8 +62,10 @@ services:
     ports:
       - "3001:3000"
     volumes:
-      - grafana-data:/var/lib/grafana
-      - ./provisioning:/etc/grafana/provisioning
+      - ./grafana_data:/var/lib/grafana
+      - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro # YAML Files
+      - ./provisioning/datasources:/etc/grafana/provisioning/datasources:ro # YAML Files
+      - ./provisioning/dashboards/dashboards:/etc/grafana/provisioning/dashboards/dashboards:ro # JSON Files
     depends_on:
       - prometheus
 

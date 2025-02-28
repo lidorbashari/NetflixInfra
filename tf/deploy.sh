@@ -85,7 +85,9 @@ sudo chown -R 472:472 /mnt/docker/provisioning
 sudo chmod -R 755 /mnt/docker/provisioning
 
 # Docker Compose Download and Deployment
-sudo curl -L "https://raw.githubusercontent.com/lidorbashari/NetflixInfra/main/docker-compose.yaml" \
-    -o /mnt/docker/docker-compose.yaml
+sudo git clone https://github.com/lidorbashari/NetflixInfra.git
+cd NetflixInfra
+
+
 cd /mnt/docker
 sudo -u ubuntu docker-compose up -d
