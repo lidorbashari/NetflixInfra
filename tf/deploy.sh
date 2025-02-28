@@ -1,93 +1,57 @@
 #!/bin/bash
 
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
 # System Update and Basic Tools Installation
 sudo apt-get update
-sudo apt-get install -y ca-certificates curl git
+sudo apt-get install -y ca-certificates curl git apt-transport-https
+
+# Docker Repository Setup and Installation
 sudo install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-# Docker Repository Setup and Installation
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
     sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -aG docker ubuntu
+newgrp docker # Activate the group change without logout
 
-# Docker Compose Installation
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" \
-    -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+# Check if EBS volume is already formatted and mounted
+if ! findmnt /mnt/ebs; then
+  echo "EBS volume not mounted. Formatting and mounting..."
+  sudo mkfs.ext4 /dev/nvme1n1
+  sudo mkdir -p /mnt/ebs
+  sudo mount /dev/nvme1n1 /mnt/ebs
+  echo "/dev/nvme1n1 /mnt/ebs ext4 defaults 0 0" | sudo tee -a /etc/fstab
+fi
 
-# EBS Volume Connection and Directory Preparation
-sudo mkfs.ext4 /dev/nvme1n1
-sudo mkdir -p /mnt/ebs
-sudo mount /dev/nvme1n1 /mnt/ebs
-sudo mkdir -p /mnt/ebs/catalog-data /mnt/ebs/prometheus-data /mnt/ebs/grafana-data /mnt/docker
-sudo chown -R ubuntu:ubuntu /mnt/ebs/catalog-data /mnt/ebs/prometheus-data /mnt/ebs/docker
-sudo chown -R 472:472 /mnt/ebs/grafana-data
-sudo chmod -R 755 /mnt/ebs/grafana-data
-sudo chmod -R 777 /mnt/ebs/catalog-data /mnt/ebs/prometheus-data /mnt/ebs/docker
+# Create persistent data directory
+sudo mkdir -p /mnt/ebs/persistent_data/catalog_data
+sudo mkdir -p /mnt/ebs/persistent_data/prometheus_data
+sudo mkdir -p /mnt/ebs/persistent_data/grafana_data
 
-# Prometheus Configuration File Creation
-cat << EOF > /home/ubuntu/prometheus.yaml
-global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
+# Set correct ownership for persistent directories
+sudo chown -R ubuntu:ubuntu /mnt/ebs/persistent_data/catalog_data
+sudo chown -R ubuntu:ubuntu /mnt/ebs/persistent_data/prometheus_data
+sudo chown -R 472:472 /mnt/ebs/persistent_data/grafana_data
 
-scrape_configs:
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
-  - job_name: 'availability-agent'
-    static_configs:
-      - targets: ['availability-agent:8081']
-EOF
+# Set permissions for Grafana directory
+sudo chmod -R 755 /mnt/ebs/persistent_data/grafana_data
 
-# Nginx Configuration File Creation
-cat << EOF > /home/ubuntu/nginx.conf
-events {
-    worker_connections 1024;
-}
-http {
-    server {
-        listen 80;
-        location / {
-            proxy_pass http://netflix-frontend:3000;
-            proxy_set_header Host \$host;
-            proxy_set_header X-Real-IP \$remote_addr;
-            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto \$scheme;
-        }
-    }
-}
-EOF
+# Define a temporary directory
+TEMP_DIR=/home/ubuntu/temp
 
-# Directory Preparation and File Copying
-sudo mkdir -p /mnt/ebs/grafana-data/provisioning/datasources
-sudo cp /home/ubuntu/prometheus.yaml /mnt/docker/prometheus.yaml
-sudo cp /home/ubuntu/nginx.conf /mnt/docker/nginx.conf
+# Create temporary directory
+mkdir -p "$TEMP_DIR"
 
-# Grafana Data Source Configuration File Creation
-sudo mkdir -p /mnt/docker/provisioning/datasources
-sudo bash -c 'cat << EOF > /mnt/docker/provisioning/datasources/datasources.yaml
-apiVersion: 1
-datasources:
-  - name: Prometheus
-    type: prometheus
-    access: proxy
-    url: http://prometheus:9090
-    isDefault: true
-EOF'
-sudo chown -R 472:472 /mnt/docker/provisioning
-sudo chmod -R 755 /mnt/docker/provisioning
+# Clone the repository to the temporary directory
+git clone https://github.com/lidorbashari/NetflixInfra.git "$TEMP_DIR/NetflixInfra"
 
-# Docker Compose Download and Deployment
-sudo git clone https://github.com/lidorbashari/NetflixInfra.git
-cd NetflixInfra
+cd  "$TEMP_DIR/NetflixInfra"
 
-
-cd /mnt/docker
-sudo -u ubuntu docker-compose up -d
+# Docker Compose Deployment (Run as regular user)
+docker compose up -d
