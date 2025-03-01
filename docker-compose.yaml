@@ -51,7 +51,7 @@ services:
     container_name: prometheus
     restart: always
     networks:
-      - private_network2
+      - private_network2  # <--- Add this
     volumes:
       - /mnt/ebs/persistent_data/prometheus_config/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
       - /mnt/ebs/persistent_data/prometheus_data:/prometheus
@@ -64,7 +64,7 @@ services:
     restart: always
     user: "472"
     networks:
-      - private_network2
+      - private_network2  # <--- Add this
     ports:
       - "3001:3000"
     volumes:
@@ -72,6 +72,8 @@ services:
       - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro  # Relative path
       - ./provisioning/datasources:/etc/grafana/provisioning/datasources:ro  # Relative path
       - ./provisioning/dashboards/dashboards:/etc/grafana/provisioning/dashboards/dashboards:ro  # Relative path
+    environment:
+      PROMETHEUS_URL: http://prometheus:9090  # Make sure you are using the correct URL to point to prometheus
     depends_on:
       - prometheus
 
