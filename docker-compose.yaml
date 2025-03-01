@@ -48,9 +48,9 @@ services:
     container_name: prometheus
     networks:
       - private_network2
-    volumes:
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml:ro  # Relative path
-      - /mnt/ebs/persistent_data/prometheus_data:/prometheus  # EBS volume
+#    volumes:
+#      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml:ro  # Relative path
+#      - /mnt/ebs/persistent_data/prometheus_data:/prometheus  # EBS volume
     ports:
       - "9090:9090"
 
