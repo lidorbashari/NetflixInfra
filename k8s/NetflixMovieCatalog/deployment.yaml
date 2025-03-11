@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: server
-          image: lidorbashari/netflix-movie-catalog:27
+          image: lidorbashari/netflix-movie-catalog:28
 ---
 apiVersion: v1
 kind: Service
@@ -32,4 +32,4 @@ spec:
   template:
     spec:
       containers:
-        - image: lidorbashari/netflix-movie-catalog:27
+        - image: lidorbashari/netflix-movie-catalog:28
