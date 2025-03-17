@@ -28,7 +28,6 @@ pipeline {
         }
         stage('Git push') {
             steps {
-               // Change `credentialsId` according to the Id you've configured your GitHub token
                withCredentials([
                 usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_TOKEN')
                ]) {
