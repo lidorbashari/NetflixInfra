@@ -23,15 +23,7 @@ pipeline {
                 sh ''
                     cd k8s/${SERVICE_NAME}
                     yq e ".spec.template.spec.containers[0].image = \"$IMAGE_NAME\"" -i ./deployment.yaml
-                /*
 
-                - `cd` into the directory corresponding to the SERVICE_NAME variable.
-                - Change the YAML manifests according to the new $IMAGE_FULL_NAME_PARAM parameter.
-                  You can do so using `yq` or `sed` command, by a simple Python script, or any other method.
-                - Commit the changes
-                   * Setting global Git user.name and user.email in 'Manage Jenkins > System' is recommended.
-                   * Setting Shell executable to `/bin/bash` in 'Manage Jenkins > System' is recommended.
-                */
             }
         }
         stage('Git push') {
