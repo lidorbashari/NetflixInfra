@@ -24,7 +24,6 @@ pipeline {
                     cd k8s/${SERVICE_NAME}
                     yq e ".spec.template.spec.containers[0].image = \"$IMAGE_NAME\"" -i ./deployment.yaml
                 /*
-                Now your turn! implement the pipeline steps ...
 
                 - `cd` into the directory corresponding to the SERVICE_NAME variable.
                 - Change the YAML manifests according to the new $IMAGE_FULL_NAME_PARAM parameter.
