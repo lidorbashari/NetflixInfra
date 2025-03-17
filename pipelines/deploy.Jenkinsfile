@@ -18,29 +18,43 @@ pipeline {
                 sh 'git checkout -b main || git checkout main'
             }
         }
-        stage('update YAML manifest') {
+        stage('Update YAML manifest') {
             steps {
-                sh ''
-                    cd k8s/${SERVICE_NAME}
-                    yq e ".spec.template.spec.containers[0].image = \"$IMAGE_NAME\"" -i ./deployment.yaml
+                script {
+                    def yamlFile = "k8s/${params.SERVICE_NAME}/deployment.yaml"
+                    def image = params.IMAGE_FULL_NAME_PARAM ?: 'lidorbashari/netflix-frontend:latest'
 
+                    sh """
+                        if [ -f "${yamlFile}" ]; then
+                            sed -i 's|image: .*|image: ${image}|' ${yamlFile}
+                        else
+                            echo "ERROR: ${yamlFile} not found!"
+                            exit 1
+                        fi
+                    """
+
+                    sh """
+                        git config --global user.email "jenkins@yourcompany.com"
+                        git config --global user.name "Jenkins"
+                        git add ${yamlFile}
+                        git commit -m "Update ${params.SERVICE_NAME} image to ${params.IMAGE_FULL_NAME_PARAM}"
+                    """
+                }
             }
         }
+
         stage('Git push') {
             steps {
-               withCredentials([
-                usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_TOKEN')
-               ]) {
-
-                 sh 'git push https://$GITHUB_TOKEN@github.com/lidorbashari/NetflixInfra.git main'
-
-               }
+                withCredentials([usernamePassword(credentialsId: 'github', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_TOKEN')]) {
+                    sh 'git push https://$GITHUB_TOKEN@github.com/lidorbashari/NetflixInfra.git main'
+                }
             }
         }
     }
+
     post {
-            cleanup {
-                cleanWs()
-            }
+        cleanup {
+            cleanWs()
         }
+    }
 }
