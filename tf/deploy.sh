@@ -15,6 +15,7 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.
     sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
 sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -aG docker ubuntu
@@ -33,6 +34,7 @@ fi
 sudo mkdir -p /mnt/ebs/persistent_data/catalog_data
 sudo mkdir -p /mnt/ebs/persistent_data/prometheus_data
 sudo mkdir -p /mnt/ebs/persistent_data/grafana_data
+sudo mkdir -p /mnt/ebs/persistent_data/prometheus_config
 
 # Set correct ownership for persistent directories
 sudo chown -R ubuntu:ubuntu /mnt/ebs/persistent_data/catalog_data
@@ -42,6 +44,9 @@ sudo chown -R 472:472 /mnt/ebs/persistent_data/grafana_data
 # Set permissions for Grafana directory
 sudo chmod -R 755 /mnt/ebs/persistent_data/grafana_data
 
+# Delete all files in prometheus data (let prometheus create new ones)
+sudo rm -rf /mnt/ebs/persistent_data/prometheus_data/*
+
 # Define a temporary directory
 TEMP_DIR=/home/ubuntu/temp
 
@@ -50,8 +55,13 @@ mkdir -p "$TEMP_DIR"
 
 # Clone the repository to the temporary directory
 git clone https://github.com/lidorbashari/NetflixInfra.git "$TEMP_DIR/NetflixInfra"
-
+sudo cp "$TEMP_DIR/NetflixInfra/prometheus.yaml" /mnt/ebs/persistent_data/prometheus_config/prometheus.yaml
 cd  "$TEMP_DIR/NetflixInfra"
+
+# Set the correct permissions for Prometheus data directory
+sudo chown -R ubuntu:ubuntu /mnt/ebs/persistent_data/prometheus_data
+sudo chmod -R 755 /mnt/ebs/persistent_data/prometheus_data
 
 # Docker Compose Deployment (Run as regular user)
 docker compose up -d
+newgrp docker
