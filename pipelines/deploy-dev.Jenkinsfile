@@ -16,7 +16,7 @@ pipeline {
             steps {
                 script {
                     def yamlFile = "k8s/dev/${params.SERVICE_NAME}/deployment.yaml"
-                    def image = params.IMAGE_FULL_NAME_PARAM ?: 'lidorbashari/netflix-frontend:latest'
+                    def image = params.IMAGE_FULL_NAME_PARAM ?: 'lidorbashari/netflix-frontend-dev:latest'
 
                     sh """
                         if [ -f "${yamlFile}" ]; then
