@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: server
-          image: lidorbashari/netflix-frontend-dev:v1.0.6
+          image: lidorbashari/netflix-frontend-dev:v1.0.7
           env:
             - name: MOVIE_CATALOG_SERVICE
               value: "http://catalog-service:8080"
@@ -39,7 +39,7 @@ spec:
   template:
     spec:
       containers:
-        - image: lidorbashari/netflix-frontend-dev:v1.0.6
+        - image: lidorbashari/netflix-frontend-dev:v1.0.7
 ---
 apiVersion: v1
 kind: Service
@@ -56,4 +56,4 @@ spec:
   template:
     spec:
       containers:
-        - image: lidorbashari/netflix-frontend-dev:v1.0.6
+        - image: lidorbashari/netflix-frontend-dev:v1.0.7
