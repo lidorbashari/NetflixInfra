@@ -9,6 +9,12 @@ pipeline {
     stages {
         stage('Git setup') {
             steps {
+                /*
+                Jenkins checks out a specific commit, rather than HEAD of the repo.
+                This puts the repo in a "detached" state, which doesn't allow committing and pushing.
+                Thus you have to checkout out the branch explicitly, as below.
+                */
+
                 sh 'git checkout -b main || git checkout main'
             }
         }
