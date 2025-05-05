@@ -23,22 +23,7 @@ spec:
             - name: AWS_REGION
               value: eu-north-1
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend-service
-spec:
-  selector:
-    app: netflix-frontend
-  ports:
-    - protocol: TCP
-      port: 3000
-      targetPort: 3000
-  template:
-    spec:
-      containers:
-        - image: lidorbashari/netflix-frontend:v1.0.13
----
+
 apiVersion: v1
 kind: Service
 metadata:
