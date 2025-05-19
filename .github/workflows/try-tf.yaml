@@ -10,9 +10,6 @@ on:
         options:
           - eu-central-1
           - us-east-1
-  push:
-    branches:
-      - main
 
 jobs:
   terraform:
