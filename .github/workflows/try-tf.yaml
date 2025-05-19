@@ -36,13 +36,17 @@ jobs:
         working-directory: tf/try
         run: |
           terraform init \
-            -backend-config="bucket=lidor-netflix-infra-tfstate-try" \
+            -backend-config="bucket=lidor-netflix-infra-tfstate-try-2" \
             -backend-config="key=tfstate.json" \
-            -backend-config="region=us-east-2"
+            -backend-config="region=us-east-1"
 
       - name: terraform validate
         working-directory: tf/try
         run: terraform validate -no-color
+
+      - name: Check local state
+        working-directory: tf/try
+        run: ls -la
 
       - name: terraform apply
         working-directory: tf/try

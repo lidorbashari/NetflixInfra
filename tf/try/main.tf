@@ -7,9 +7,9 @@ terraform {
   }
 
   backend "s3" {
-    bucket = "lidor-netflix-infra-tfstate-try"
+    bucket = "lidor-netflix-infra-tfstate-try-2"
     key    = "tfstate.json"
-    region = "us-east-2"
+    region = "us-east-1"
     # optional: dynamodb_table = "<table-name>"
   }
 
