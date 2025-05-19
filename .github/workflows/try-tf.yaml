@@ -29,6 +29,10 @@ jobs:
         run: terraform fmt -check
         continue-on-error: true
 
+      - name: terraform init
+        working-directory: /tf/try
+        run: terraform init
+
       - name: terraform validate
         working-directory: tf/try
         run: terraform validate -no-color
