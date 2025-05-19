@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       region:
-        description: "choose region"
+        description: "choose region!"
         required: true
         type: choice
         options:
