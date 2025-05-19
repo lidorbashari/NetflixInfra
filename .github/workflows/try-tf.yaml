@@ -25,14 +25,14 @@ jobs:
           terraform_version: 1.10.5
 
       - name: terraform fmt
-        working-directory: /tf/try
+        working-directory: tf/try
         run: terraform fmt -check
         continue-on-error: true
 
       - name: terraform validate
-        working-directory: /tf/try
+        working-directory: tf/try
         run: terraform validate -no-color
 
       - name: terraform apply
-        working-directory: /tf/try
+        working-directory: tf/try
         run: terraform apply -auto-approve -var-file region.${{ github.event.inputs.region }}.tfvars
