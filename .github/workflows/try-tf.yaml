@@ -1,0 +1,38 @@
+name: tf apply for each state and region
+
+on:
+  workflow_dispatch:
+    inputs:
+      region:
+        description: "choose region"
+        required: true
+        type: choice
+        options:
+          - eu-central-1
+          - us-east-1
+  push:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: setup terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
+
+      - name: terraform fmt
+        run: terraform fmt -check
+        continue-on-error: true
+
+      - name: terraform validate
+        run: terraform validate -no-color
+
+      - name: terraform apply
+        run: terraform apply -auto-approve -var-file region.${{ github.event.inputs.region }}.tfvars
