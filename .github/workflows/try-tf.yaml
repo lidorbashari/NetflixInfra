@@ -32,6 +32,10 @@ jobs:
         run: terraform fmt
         continue-on-error: true
 
+      - name: terraform workspace
+        working-directory: tf/try
+        run: terraform workspace new ${{ github.event.inputs.region }}
+
       - name: terraform init
         working-directory: tf/try
         run: |
