@@ -32,10 +32,6 @@ jobs:
         run: terraform fmt
         continue-on-error: true
 
-      - name: terraform workspace
-        working-directory: tf/try
-        run: terraform workspace new ${{ github.event.inputs.region }}
-
       - name: terraform init
         working-directory: tf/try
         run: |
@@ -43,6 +39,10 @@ jobs:
             -backend-config="bucket=lidor-netflix-infra-tfstate-try" \
             -backend-config="key=tfstate.json" \
             -backend-config="region=us-east-2"
+
+      - name: terraform workspace
+        working-directory: tf/try
+        run: terraform workspace new ${{ github.event.inputs.region }}
 
       - name: terraform validate
         working-directory: tf/try
