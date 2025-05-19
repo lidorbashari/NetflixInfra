@@ -42,7 +42,7 @@ jobs:
 
       - name: terraform workspace
         working-directory: tf/try
-        run: terraform workspace new ${{ github.event.inputs.region }}
+        run: terraform workspace select ${{ github.event.inputs.region }} || terraform workspace new ${{ github.event.inputs.region }}
 
       - name: terraform validate
         working-directory: tf/try
