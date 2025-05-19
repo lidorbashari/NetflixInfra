@@ -16,6 +16,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: enter diractory
+        run: cd tf/try
+
       - name: checkout code
         uses: actions/checkout@v4
 
