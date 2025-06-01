@@ -1,0 +1,7 @@
+# helm/polybot/Chart.yaml
+apiVersion: v2
+name: polybot
+description: Helm chart for Polybot microservice
+type: application
+version: 0.1.0
+appVersion: "2.2.5"
