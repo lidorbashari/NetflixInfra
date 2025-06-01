@@ -36,9 +36,9 @@ jobs:
         working-directory: tf/try
         run: |
           terraform init \
-            -backend-config="bucket=lidor-netflix-infra-tfstate-try" \
+            -backend-config="bucket=lidor-project-bucket-tf" \
             -backend-config="key=tfstate.json" \
-            -backend-config="region=us-east-2"
+            -backend-config="region=eu-north-1"
 
       - name: terraform workspace
         working-directory: tf/try
