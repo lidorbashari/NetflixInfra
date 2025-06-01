@@ -48,10 +48,10 @@ jobs:
           ssh-keyscan -H $CP_IP >> ~/.ssh/known_hosts
 
       - name: Install ArgoCD on control plane
+        shell: bash
         run: |
-          ssh -i ~/.ssh/id_rsa $SSH_USER@$CP_IP << EOF
-            # כאן תוסיף את הפקודות להתקנת ArgoCD, לדוגמה:
+            ssh -i ~/.ssh/id_rsa $SSH_USER@$CP_IP <<EOF
             sudo kubectl create namespace argocd || true
             sudo kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-            # אפשר להמתין שהפודים יעלו ואז לקונפג את ArgoCD למשוך מ-repo ה-infra
-EOF
+            EOF
+      
