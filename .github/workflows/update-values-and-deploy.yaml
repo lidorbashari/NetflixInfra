@@ -6,7 +6,6 @@ on:
       workspace:
         description: 'Terraform workspace name'
         required: true
-        default: 'default'
         type: choice
         options:
           - eu-north-1
