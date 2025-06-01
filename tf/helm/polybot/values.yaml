@@ -4,7 +4,7 @@ replicaCount: 4
 
 image:
   repository: lidorbashari/polybot
-  tag: 2.2.5
+  tag: "20250601170117"
   pullPolicy: IfNotPresent
 
 service:
