@@ -51,9 +51,9 @@ jobs:
         shell: bash
         run: |
             ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -t $SSH_USER@$CP_IP << EOF
-            export KUBECONFIG=/etc/kubernetes/admin.conf
-            kubectl create namespace argocd || true
-            kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+            sudo KUBECONFIG=/etc/kubernetes/admin.conf kubectl create namespace argocd || true
+            sudo KUBECONFIG=/etc/kubernetes/admin.conf kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
             EOF
+
 
       
