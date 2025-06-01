@@ -1,0 +1,58 @@
+name: Install ArgoCD on Cluster
+
+on:
+  workflow_dispatch:
+    inputs:
+      workspace:
+        description: 'Terraform workspace name'
+        required: true
+        default: 'default'
+        type: choice
+        options:
+          - eu-north-1
+          - eu-north-2
+
+env:
+  S3_BUCKET_NAME: lidor-project-bucket-tf
+  STATE_FILE: terraform.tfstate
+  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+  SSH_USER: ubuntu
+
+jobs:
+  deploy-argocd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout infra repo
+        uses: actions/checkout@v4
+
+      - name: Download Terraform state from S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          WORKSPACE=${{ github.event.inputs.workspace }}
+          echo "Using workspace: $WORKSPACE"
+          aws s3 cp s3://$S3_BUCKET_NAME/$WORKSPACE/$STATE_FILE terraform.tfstate
+
+      - name: Parse outputs from Terraform state
+        run: |
+          CP_IP=$(jq -r '.outputs.control_plane_public_ip.value' terraform.tfstate)
+          CP_PASS=$(jq -r '.outputs.control_plane_password.value' terraform.tfstate)
+          echo "CP_IP=$CP_IP" >> $GITHUB_ENV
+          echo "CP_PASS=$CP_PASS" >> $GITHUB_ENV
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $CP_IP >> ~/.ssh/known_hosts
+
+      - name: Install ArgoCD on control plane
+        run: |
+          ssh -i ~/.ssh/id_rsa $SSH_USER@$CP_IP << EOF
+            # כאן תוסיף את הפקודות להתקנת ArgoCD, לדוגמה:
+            sudo kubectl create namespace argocd || true
+            sudo kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+            # אפשר להמתין שהפודים יעלו ואז לקונפג את ArgoCD למשוך מ-repo ה-infra
+EOF
