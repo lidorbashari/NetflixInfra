@@ -13,7 +13,7 @@ on:
 
 env:
   S3_BUCKET_NAME: lidor-project-bucket-tf
-  STATE_FILE: terraform.tfstate
+  STATE_FILE: tfstate.json
   SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
   SSH_USER: ubuntu
 
@@ -31,12 +31,12 @@ jobs:
         run: |
           WORKSPACE=${{ github.event.inputs.workspace }}
           echo "Using workspace: $WORKSPACE"
-          aws s3 cp s3://$S3_BUCKET_NAME/$WORKSPACE/$STATE_FILE terraform.tfstate
+          aws s3 cp s3://$S3_BUCKET_NAME/env:/$WORKSPACE/$STATE_FILE tfstate.json
 
       - name: Parse outputs from Terraform state
         run: |
-          CP_IP=$(jq -r '.outputs.control_plane_public_ip.value' terraform.tfstate)
-          CP_PASS=$(jq -r '.outputs.control_plane_password.value' terraform.tfstate)
+          CP_IP=$(jq -r '.outputs.control_plane_public_ip.value' tfstate.json)
+          CP_PASS=$(jq -r '.outputs.control_plane_password.value' tfstate.json)
           echo "CP_IP=$CP_IP" >> $GITHUB_ENV
           echo "CP_PASS=$CP_PASS" >> $GITHUB_ENV
 
