@@ -62,9 +62,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/lidorbashkey.pem -o StrictHostKeyChecking=no ubuntu@${{ env.CONTROL_PLANE_IP }} <<EOF
             cd /home/ubuntu
-            if [ ! -d "NetflixInfra" ]; then
-              git clone https://github.com/lidorbashari/NetflixInfra.git
-            fi
+            git clone https://github.com/lidorbashari/NetflixInfra.git
             cd NetflixInfra/tf/helm/polybot
             helm upgrade --install polybot . \
               --set secrets.aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
