@@ -44,7 +44,7 @@ jobs:
 
       - name: Download tfstate for workspace and region
         run: |
-          S3_KEY="env/${{ github.event.inputs.environment }}/${{ github.event.inputs.region }}/terraform.tfstate"
+          S3_KEY="env/${{ github.event.inputs.region }}/terraform.tfstate"
           echo "Using S3 key: $S3_KEY"
           aws s3 cp s3://lidor-project-bucket-tf/$S3_KEY tfstate.json
 
