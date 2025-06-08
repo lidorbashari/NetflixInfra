@@ -61,7 +61,11 @@ jobs:
       - name: Deploy Helm Chart on Control Plane
         run: |
           ssh -i ~/.ssh/lidorbashkey.pem -o StrictHostKeyChecking=no ubuntu@${{ env.CONTROL_PLANE_IP }} <<EOF
-            cd ~/NetflixInfra/tf/helm/polybot
+            cd /home/ubuntu
+            if [ ! -d "NetflixInfra" ]; then
+              git clone https://github.com/lidorbashari/NetflixInfra.git
+            fi
+            cd NetflixInfra/tf/helm/polybot
             helm upgrade --install polybot . \
               --set secrets.aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
               --set secrets.aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
