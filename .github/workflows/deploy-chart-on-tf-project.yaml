@@ -55,7 +55,7 @@ jobs:
       - name: Add SSH Key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/lidorbashkey.pem
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/lidorbashkey.pem
           chmod 600 ~/.ssh/lidorbashkey.pem
 
       - name: Deploy Helm Chart on Control Plane
