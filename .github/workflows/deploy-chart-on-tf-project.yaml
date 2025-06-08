@@ -2,6 +2,21 @@ name: Deploy Polybot Helm Chart
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: "choose environment"
+        required: true
+        type: choice
+        options:
+          - prod
+          - dev
+      region:
+        description: "choose region"
+        required: true
+        type: choice
+        options:
+          - us-east-2
+          - eu-north-1
 
 jobs:
   deploy_polybot:
@@ -27,9 +42,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Download Terraform State File
+      - name: Download tfstate for workspace and region
         run: |
-          aws s3 cp s3://lidor-project-bucket-tf/tfstate.json tfstate.json
+          S3_KEY="env/${{ github.event.inputs.environment }}/${{ github.event.inputs.region }}/terraform.tfstate"
+          echo "Using S3 key: $S3_KEY"
+          aws s3 cp s3://lidor-project-bucket-tf/$S3_KEY tfstate.json
 
       - name: Extract Control Plane IP from tfstate
         id: extract_ip
