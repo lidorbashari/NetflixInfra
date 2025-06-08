@@ -1,0 +1,49 @@
+name: Deploy Polybot Helm Chart
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy_polybot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download AWS CLI and JQ
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli jq
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Download Terraform State File
+        run: |
+          aws s3 cp s3://lidor-project-bucket-tf/tfstate.json tfstate.json
+
+      - name: Extract Control Plane IP from tfstate
+        id: extract_ip
+        run: |
+          CONTROL_PLANE_IP=$(jq -r '.outputs.control_plane_public_ip.value' tfstate.json)
+          echo "CONTROL_PLANE_IP=$CONTROL_PLANE_IP" >> $GITHUB_ENV
+
+      - name: Add SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/lidorbashkey.pem
+          chmod 600 ~/.ssh/lidorbashkey.pem
+
+      - name: Deploy Helm Chart on Control Plane
+        run: |
+          ssh -i ~/.ssh/lidorbashkey.pem -o StrictHostKeyChecking=no ubuntu@$CONTROL_PLANE_IP <<EOF
+            cd ~/NetflixInfra/tf/helm/polybot
+            helm upgrade --install polybot . \
+              --set secrets.aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+              --set secrets.aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          EOF
