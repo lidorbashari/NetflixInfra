@@ -68,6 +68,9 @@ jobs:
             cd /home/ubuntu
             if [ ! -d NetflixInfra ]; then
               git clone https://github.com/lidorbashari/NetflixInfra.git
+            else
+              rm -rf NetflixInfra
+              git clone https://github.com/lidorbashari/NetflixInfra.git
             fi
             cd NetflixInfra/tf/helm/polybot
             helm upgrade --install polybot . \
