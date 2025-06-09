@@ -13,7 +13,7 @@ service:
   targetPort: 8443
 
 env:
-  SQS_URL: https://sqs.eu-north-1.amazonaws.com/352708296901/lidor_k8s_queue_project
+  SQS_URL: ""
   TELEGRAM_APP_URL: https://lidor.devops-int-college.com
   AWS_DEFAULT_REGION: eu-north-1
 

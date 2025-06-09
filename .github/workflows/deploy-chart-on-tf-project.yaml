@@ -40,17 +40,19 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
+          aws-region: ${{ github.event.inputs.region }}
 
       - name: Download tfstate for workspace and region
         run: |
           aws s3 cp s3://lidor-project-bucket-tf/env:/${{ github.event.inputs.region }}/tfstate.json tfstate.json
 
-      - name: Extract Control Plane IP from tfstate
-        id: extract_ip
+      - name: Extract Terraform Outputs
+        id: extract
         run: |
           CONTROL_PLANE_IP=$(jq -r '.outputs.control_plane_public_ip.value' tfstate.json)
+          SQS_ARN=$(jq -r '.outputs.sqs_arn.value' tfstate.json)
           echo "CONTROL_PLANE_IP=$CONTROL_PLANE_IP" >> $GITHUB_ENV
+          echo "SQS_ARN=$SQS_ARN" >> $GITHUB_ENV
 
       - name: Add SSH Key
         run: |
@@ -62,9 +64,13 @@ jobs:
         run: |
           ssh -i ~/.ssh/lidorbashkey.pem -o StrictHostKeyChecking=no ubuntu@${{ env.CONTROL_PLANE_IP }} <<EOF
             cd /home/ubuntu
-            git clone https://github.com/lidorbashari/NetflixInfra.git
+            if [ ! -d NetflixInfra ]; then
+              git clone https://github.com/lidorbashari/NetflixInfra.git
+            fi
             cd NetflixInfra/tf/helm/polybot
             helm upgrade --install polybot . \
               --set secrets.aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
-              --set secrets.aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+              --set secrets.aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+              --set env.SQS_URL="${{ env.SQS_ARN }}" \
+              --set env.AWS_DEFAULT_REGION="${{ github.event.inputs.region }}"
           EOF
