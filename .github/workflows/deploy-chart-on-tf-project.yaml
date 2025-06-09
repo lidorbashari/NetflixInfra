@@ -62,7 +62,7 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/lidorbashkey.pem
           chmod 600 ~/.ssh/lidorbashkey.pem
 
-      - name: Deploy Helm Chart on Control Plane
+      - name: Deploy polybot Chart on Control Plane
         run: |
           ssh -i ~/.ssh/lidorbashkey.pem -o StrictHostKeyChecking=no ubuntu@${{ env.CONTROL_PLANE_IP }} <<EOF
             cd /home/ubuntu
@@ -76,7 +76,11 @@ jobs:
               --set env.SQS_URL="${{ env.SQS_ARN }}" \
               --set env.AWS_DEFAULT_REGION="${{ github.event.inputs.region }}"
           EOF
-            cd /home/ubuntu/NetflixInfra/tf/helm/yolo
+
+      - name: Deploy yolo Chart on Control Plane
+        run: |
+            cd /home/ubuntu
+            cd /NetflixInfra/tf/helm/yolo
             helm helm upgrade --install yolo . \
             --set secrets.aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
             --set secrets.aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
