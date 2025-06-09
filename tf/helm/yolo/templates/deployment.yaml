@@ -1,5 +1,3 @@
-# helm/yolo5/templates/deployment.yaml
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -27,13 +25,12 @@ spec:
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
             secretKeyRef:
-              name: { { .Values.awsSecretName } }
+              name: {{ .Values.awsSecretName }}
               key: aws_access_key_id
         - name: AWS_SECRET_ACCESS_KEY
           valueFrom:
             secretKeyRef:
-              name: { { .Values.awsSecretName } }
+              name: {{ .Values.awsSecretName }}
               key: aws_secret_access_key
         - name: AWS_DEFAULT_REGION
-          value: { { .Values.env.AWS_DEFAULT_REGION | quote } }
-
+          value: {{ .Values.env.AWS_DEFAULT_REGION | quote }}
