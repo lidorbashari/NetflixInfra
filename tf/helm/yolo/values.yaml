@@ -4,7 +4,7 @@ replicaCount: 2
 
 image:
   repository: lidorbashari/yolo5
-  tag: "2.1.0"
+  tag: "1.0.1"
 
 env:
   BUCKET_NAME: lidorbashari
