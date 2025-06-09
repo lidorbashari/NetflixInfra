@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       workspace:
-        description: 'Terraform workspace name'
+        description: 'Terraform workspace name '
         required: true
         type: choice
         options:
