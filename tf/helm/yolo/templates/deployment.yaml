@@ -1,0 +1,39 @@
+# helm/yolo5/templates/deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        env:
+        - name: BUCKET_NAME
+          value: {{ .Values.env.BUCKET_NAME | quote }}
+        - name: SQS_QUEUE_NAME
+          value: {{ .Values.env.SQS_QUEUE_NAME | quote }}
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: { { .Values.awsSecretName } }
+              key: aws_access_key_id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: { { .Values.awsSecretName } }
+              key: aws_secret_access_key
+        - name: AWS_DEFAULT_REGION
+          value: { { .Values.env.AWS_DEFAULT_REGION | quote } }
+

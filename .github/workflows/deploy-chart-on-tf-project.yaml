@@ -74,3 +74,11 @@ jobs:
               --set env.SQS_URL="${{ env.SQS_ARN }}" \
               --set env.AWS_DEFAULT_REGION="${{ github.event.inputs.region }}"
           EOF
+            cd NetflixInfra/tf/helm/yolo
+            helm helm upgrade --install yolo . \
+            --set secrets.aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+              --set secrets.aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+              --set env.BUCKET_NAME="lidorbashari" \
+              --set env.SQS_QUEUE_NAME="lidor_k8s_queue_project" \
+              --set env.AWS_DEFAULT_REGION="${{ github.event.inputs.region }}"
+          EOF

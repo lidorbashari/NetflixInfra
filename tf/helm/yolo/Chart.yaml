@@ -1,0 +1,7 @@
+# helm/polybot/Chart.yaml
+apiVersion: v2
+name: yolo
+description: Helm chart for yolo microservice
+type: application
+version: 0.1.0
+appVersion: "2.2.5"

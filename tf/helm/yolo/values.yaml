@@ -1,0 +1,15 @@
+# helm/yolo5/values.yaml
+
+replicaCount: 2
+
+image:
+  repository: lidorbashari/yolo5
+  tag: "2.1.0"
+
+env:
+  BUCKET_NAME: lidorbashari
+  SQS_QUEUE_NAME: ""
+  AWS_ACCESS_KEY_ID: ""
+  AWS_SECRET_ACCESS_KEY: ""
+
+awsSecretName: aws-credentials
