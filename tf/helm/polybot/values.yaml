@@ -17,7 +17,7 @@ env:
   TELEGRAM_APP_URL: https://lidor.devops-int-college.com
   AWS_DEFAULT_REGION: eu-north-1
 
-awsSecretName: aws-credentials
+awsSecretName: polybot-credentials
 
 secrets:
   aws_access_key_id: ""

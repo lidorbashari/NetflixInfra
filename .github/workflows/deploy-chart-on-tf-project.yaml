@@ -78,15 +78,14 @@ jobs:
           EOF
 
       - name: Deploy yolo Chart on Control Plane
-        env:
-          BUCKET_NAME: ${{ env.BUCKET_NAME }}
-          REGION: ${{ github.event.inputs.region }}
         run: |
-          ssh -i ~/.ssh/lidorbashkey.pem -o StrictHostKeyChecking=no ubuntu@${{ env.CONTROL_PLANE_IP }} "
-            cd /home/ubuntu/NetflixInfra/tf/helm/yolo &&
+          ssh -i ~/.ssh/lidorbashkey.pem -o StrictHostKeyChecking=no ubuntu@${{ env.CONTROL_PLANE_IP }} <<EOF
+            cd /home/ubuntu
+            cd NetflixInfra/tf/helm/yolo
             helm upgrade --install yolo . \
-              --set awsSecretName=aws-credentials \
-              --set env.BUCKET_NAME=${BUCKET_NAME} \
-              --set env.SQS_QUEUE_NAME=lidor_k8s_queue_project \
-              --set env.AWS_DEFAULT_REGION=${REGION}
-          "
+              --set secrets.aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+              --set secrets.aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+              --set env.BUCKET_NAME="${{ env.BUCKET_NAME }}" \
+              --set env.SQS_QUEUE_NAME="lidor_k8s_queue_project" \
+              --set env.AWS_DEFAULT_REGION="${{ github.event.inputs.region }}"
+          EOF
