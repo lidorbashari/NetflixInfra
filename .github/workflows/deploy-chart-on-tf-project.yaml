@@ -83,6 +83,7 @@ jobs:
             cd /home/ubuntu
             cd NetflixInfra/tf/helm/yolo
             helm upgrade --install yolo . \
+              --set awsSecretName=yolo-credentials \
               --set secrets.aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
               --set secrets.aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
               --set env.BUCKET_NAME="${{ env.BUCKET_NAME }}" \
