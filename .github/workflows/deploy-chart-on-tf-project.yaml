@@ -51,8 +51,10 @@ jobs:
         run: |
           CONTROL_PLANE_IP=$(jq -r '.outputs.control_plane_public_ip.value' tfstate.json)
           SQS_ARN=$(jq -r '.outputs.sqs_arn.value' tfstate.json)
+          BUCKET_NAME=$(jq -r '.outputs.s3_name.value' tfstate.json)
           echo "CONTROL_PLANE_IP=$CONTROL_PLANE_IP" >> $GITHUB_ENV
           echo "SQS_ARN=$SQS_ARN" >> $GITHUB_ENV
+          echo "BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV
 
       - name: Add SSH Key
         run: |
@@ -77,8 +79,8 @@ jobs:
             cd NetflixInfra/tf/helm/yolo
             helm helm upgrade --install yolo . \
             --set secrets.aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
-              --set secrets.aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-              --set env.BUCKET_NAME="lidorbashari" \
-              --set env.SQS_QUEUE_NAME="lidor_k8s_queue_project" \
-              --set env.AWS_DEFAULT_REGION="${{ github.event.inputs.region }}"
+            --set secrets.aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            --set env.BUCKET_NAME="${{ env.BUCKET_NAME }}" \
+            --set env.SQS_QUEUE_NAME="lidor_k8s_queue_project" \
+            --set env.AWS_DEFAULT_REGION="${{ github.event.inputs.region }}"
           EOF
