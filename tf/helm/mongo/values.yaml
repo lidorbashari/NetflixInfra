@@ -1,0 +1,8 @@
+replicaCount: 3
+image:
+  repository: mongo
+  tag: "5"
+  pullPolicy: IfNotPresent
+service:
+  name: mongodb
+  port: 27017

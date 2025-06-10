@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "polybot.fullname" . }}-ingress
+spec:
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
+  rules:
+  - host: {{ .Values.ingress.host }}
+    http:
+      paths:
+      - path: /
+        pathType: {{ .Values.ingress.pathType }}
+        backend:
+          service:
+            name: {{ include "polybot.fullname" . }}-service
+            port:
+              number: {{ .Values.ingress.service.port }}

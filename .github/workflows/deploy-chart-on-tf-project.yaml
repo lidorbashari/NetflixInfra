@@ -62,7 +62,7 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/lidorbashkey.pem
           chmod 600 ~/.ssh/lidorbashkey.pem
 
-      - name: Deploy polybot Chart on Control Plane
+      - name: Add ingress-nginx Helm repo
         run: |
           ssh -i ~/.ssh/lidorbashkey.pem -o StrictHostKeyChecking=no ubuntu@${{ env.CONTROL_PLANE_IP }} <<EOF
             cd /home/ubuntu
@@ -72,6 +72,22 @@ jobs:
               rm -rf NetflixInfra
               git clone https://github.com/lidorbashari/NetflixInfra.git
             fi
+            helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+            helm repo update
+           EOF
+
+      - name: Deploy mongo-db Chart
+        run: |
+          ssh -i ~/.ssh/lidorbashkey.pem -o StrictHostKeyChecking=no ubuntu@${{ env.CONTROL_PLANE_IP }} <<EOF
+            cd /home/ubuntu
+            cd NetflixInfra/tf/helm/mongo
+            helm upgrade --install mongodb .
+          EOF
+
+      - name: Deploy polybot release Chart on Control Plane
+        run: |
+          ssh -i ~/.ssh/lidorbashkey.pem -o StrictHostKeyChecking=no ubuntu@${{ env.CONTROL_PLANE_IP }} <<EOF
+            cd /home/ubuntu
             cd NetflixInfra/tf/helm/polybot
             helm upgrade --install polybot . \
               --set secrets.aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
@@ -84,9 +100,6 @@ jobs:
         run: |
           ssh -i ~/.ssh/lidorbashkey.pem -o StrictHostKeyChecking=no ubuntu@${{ env.CONTROL_PLANE_IP }} <<EOF
             cd /home/ubuntu
-            if [ ! -d NetflixInfra ]; then
-              git clone https://github.com/lidorbashari/NetflixInfra.git
-            fi
             cd NetflixInfra/tf/helm/yolo
             helm upgrade --install yolo . \
               --set secrets.aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: mongo
+description: A MongoDB StatefulSet with replica set initialization
+type: application
+version: 0.1.0
+appVersion: "5"

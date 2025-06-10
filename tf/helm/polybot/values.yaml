@@ -22,3 +22,11 @@ awsSecretName: polybot-credentials
 secrets:
   aws_access_key_id: ""
   aws_secret_access_key: ""
+
+ingress:
+  ingressClassName: nginx
+  annotations: {}
+  host: lidor.devops-int-college.com
+  pathType: Prefix
+  service:
+    port: 80
