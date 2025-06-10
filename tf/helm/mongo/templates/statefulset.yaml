@@ -23,4 +23,19 @@ spec:
             - bash
             - "-c"
             - |
-              mongod --replSet rs0 --bind_ip_all
+              mongod --replSet rs0 --bind_ip_all &
+              MONGOD_PID=$!
+
+              sleep 5
+
+              if [ "$(hostname)" == "mongodb-0" ]; then
+                mongosh --eval "rs.status()" | grep "no replset config has been received"
+                if [ $? -eq 0 ]; then
+                  echo "Initiating Replica Set..."
+                  mongosh --eval 'rs.initiate({_id: "rs0", members: [{_id: 0, host: "mongodb-0.mongodb:27017"}, {_id: 1, host: "mongodb-1.mongodb:27017"}, {_id: 2, host: "mongodb-2.mongodb:27017"}]})'
+                else
+                  echo "Replica Set already initiated."
+                fi
+              fi
+
+              wait $MONGOD_PID
