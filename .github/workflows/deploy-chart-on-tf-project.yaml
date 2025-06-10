@@ -64,17 +64,17 @@ jobs:
 
       - name: Add ingress-nginx Helm repo
         run: |
-          ssh -i ~/.ssh/lidorbashkey.pem -o StrictHostKeyChecking=no ubuntu@${{ env.CONTROL_PLANE_IP }} <<EOF
-            cd /home/ubuntu
-            if [ ! -d NetflixInfra ]; then
-              git clone https://github.com/lidorbashari/NetflixInfra.git
-            else
-              rm -rf NetflixInfra
-              git clone https://github.com/lidorbashari/NetflixInfra.git
-            fi
-            helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-            helm repo update
-           EOF
+          ssh -i ~/.ssh/lidorbashkey.pem -o StrictHostKeyChecking=no ubuntu@${{ env.CONTROL_PLANE_IP }} <<'EOF'
+          cd /home/ubuntu
+          if [ ! -d NetflixInfra ]; then
+            git clone https://github.com/lidorbashari/NetflixInfra.git
+          else
+            rm -rf NetflixInfra
+            git clone https://github.com/lidorbashari/NetflixInfra.git
+          fi
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo update
+          EOF
 
       - name: Deploy mongo-db Chart
         run: |
