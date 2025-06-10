@@ -12,26 +12,33 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: mongo-init
-          image: mongo:6.0.13  # עדכן לגרסה שתומכת ב-mongosh
+          image: mongo:6.0.13
           command: ["/bin/sh", "-c"]
           args:
             - |
-              echo "בודק אם ה-Replica Set מאותחל..."
-              until mongosh --host "mongodb-0.mongodb" --eval '
-                if (!rs.status().ok) {
-                  rs.initiate({
-                    _id: "rs0",
-                    members: [
-                      { _id: 0, host: "mongodb-0.mongodb:27017" },
-                      { _id: 1, host: "mongodb-1.mongodb:27017" },
-                      { _id: 2, host: "mongodb-2.mongodb:27017" }
-                    ]
-                  });
-                } else {
-                  print("ReplicaSet כבר מאותחל.");
-                }
-              ' > /dev/null 2>&1; do
-                echo "עדיין לא מוכן, מנסה שוב בעוד 5 שניות..."
+              echo "בודק זמינות של mongodb-0..."
+              until mongosh --host "mongodb-0.mongodb" --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+                echo "Mongo עדיין לא זמין... מחכה 5 שניות"
                 sleep 5
               done
+
+              echo "בודק אם ה-Replica Set כבר מאותחל..."
+              INIT_OUTPUT=$(mongosh --host "mongodb-0.mongodb" --quiet --eval "JSON.stringify(rs.status())" || true)
+
+              if echo "$INIT_OUTPUT" | grep -q '"ok":1'; then
+                echo "ReplicaSet כבר מאותחל. יוצא."
+                exit 0
+              fi
+
+              echo "מאתחל Replica Set..."
+              mongosh --host "mongodb-0.mongodb" --eval '
+                rs.initiate({
+                  _id: "rs0",
+                  members: [
+                    { _id: 0, host: "mongodb-0.mongodb:27017" },
+                    { _id: 1, host: "mongodb-1.mongodb:27017" },
+                    { _id: 2, host: "mongodb-2.mongodb:27017" }
+                  ]
+                })
+              '
               echo "Replica Set מאותחל!"
