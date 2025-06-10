@@ -16,25 +16,27 @@ spec:
           command: ["sh", "-c"]
           args:
             - |
-              echo "⏳ ממתין ש-mongodb-0 יהיה מוכן לחיבורים..."
+              echo "⏳ ממתין ש-mongodb-0 יהיה זמין ל-Replica Set..."
+
               for i in $(seq 1 40); do
-                if mongosh --host mongodb-0.mongodb.default.svc.cluster.local --eval "db.adminCommand('ping')" > /dev/null 2>&1; then
-                  echo "✅ Mongo מוכן!"
+                STATUS=$(mongosh --host mongodb-0.mongodb.default.svc.cluster.local --quiet --eval "try { rs.status() } catch(e) { printjson(e); }")
+                if echo "$STATUS" | grep -q "NotYetInitialized"; then
+                  echo "❌ Replica Set עדיין לא מאותחל... מנסה שוב ($i)"
+                  sleep 3
+                else
+                  echo "✅ Mongo זמין ומוכן!"
                   break
                 fi
-                echo "📌 mongodb-0 עדיין לא מוכן ($i)..."
-                sleep 3
               done
 
-              echo "🔍 בודק אם ה-Replica Set כבר מאותחל..."
-              INIT_OUTPUT=$(mongosh --host mongodb-0.mongodb.default.svc.cluster.local --quiet --eval "try { rs.status() } catch(e) { e }")
-
-              if echo "$INIT_OUTPUT" | grep -q '"ok" : 1'; then
+              echo "🔍 בודק אם כבר קיים Replica Set..."
+              INIT_OUTPUT=$(mongosh --host mongodb-0.mongodb.default.svc.cluster.local --quiet --eval "try { rs.status().ok } catch(e) { 0 }")
+              if [ "$INIT_OUTPUT" = "1" ]; then
                 echo "⚠️ Replica Set כבר מאותחל. יוצא..."
                 exit 0
               fi
 
-              echo "🚀 מאתחל Replica Set..."
+              echo "🚀 מריץ rs.initiate()..."
               mongosh --host mongodb-0.mongodb.default.svc.cluster.local --eval '
                 rs.initiate({
                   _id: "rs0",
@@ -45,4 +47,4 @@ spec:
                   ]
                 })
               '
-              echo "✅ Replica Set מאותחל בהצלחה!"
+              echo "✅ Replica Set מאותחל!"
