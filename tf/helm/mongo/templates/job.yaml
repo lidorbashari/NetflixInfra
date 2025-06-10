@@ -3,38 +3,48 @@ kind: Job
 metadata:
   name: mongodb-init
   annotations:
-    # Helm hook שיריץ את ה-Job אחרי ההתקנה וימחק אותו בהצלחה
     "helm.sh/hook": post-install
     "helm.sh/hook-delete-policy": hook-succeeded
 spec:
+  # מגדיר שה-Job ייכשל אם הוא רץ יותר מדי זמן
+  activeDeadlineSeconds: 300 # 5 דקות
   template:
     spec:
       restartPolicy: OnFailure
       containers:
         - name: mongo-init
-          image: mongo:6.0.13-jammy # או מה שאתה יודע שתומך בmongosh
+          image: mongo:5
           command: ["/bin/sh", "-c"]
           args:
             - |
-              echo "מחכה ש-mongodb-0 יהיה מוכן..."
-              until mongosh --host "mongodb-0.mongodb" --eval "db.adminCommand('ping')" --quiet > /dev/null 2>&1; do
-                sleep 2
-                echo -n "."
+              echo "מנסה לאתחל את ה-Replica Set..."
+              
+              # לולאה שמנסה לאתחל עד שהיא מצליחה
+              until mongosh --host "mongodb-0.mongodb" --eval '
+                try {
+                  var cfg = {
+                    _id: "rs0",
+                    members: [
+                      { _id: 0, host: "mongodb-0.mongodb:27017" },
+                      { _id: 1, host: "mongodb-1.mongodb:27017" },
+                      { _id: 2, host: "mongodb-2.mongodb:27017" }
+                    ]
+                  };
+                  rs.initiate(cfg);
+                  print("ReplicaSet initiated successfully!");
+                } catch (e) {
+                  if (e.codeName === "AlreadyInitialized") {
+                    print("ReplicaSet is already initialized.");
+                    // אם כבר מאותחל, זו הצלחה, צא מהלולאה
+                    process.exit(0);
+                  }
+                  // אם זו שגיאה אחרת, כנראה שהפוד עוד לא מוכן.
+                  // זרוק שגיאה כדי שה-until ימשיך לנסות.
+                  throw "Failed to initiate: " + e.message;
+                }
+              ' > /dev/null; do
+                sleep 5
+                echo "האיתחול נכשל, מנסה שוב בעוד 5 שניות..."
               done
-              echo ""
-              echo "mongodb-0 מוכן. בודק אם כבר קיים ReplicaSet..."
-              mongosh --host "mongodb-0.mongodb" --eval '
-              if (!rs.status().ok) {
-                rs.initiate({
-                  _id: "rs0",
-                  members: [
-                    { _id: 0, host: "mongodb-0.mongodb:27017" },
-                    { _id: 1, host: "mongodb-1.mongodb:27017" },
-                    { _id: 2, host: "mongodb-2.mongodb:27017" }
-                  ]
-                });
-              } else {
-                print("ReplicaSet כבר מאותחל.");
-              }
-              '
 
+              echo "ה-Replica Set מוכן."
