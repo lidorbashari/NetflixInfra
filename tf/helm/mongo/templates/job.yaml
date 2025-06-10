@@ -3,40 +3,38 @@ kind: Job
 metadata:
   name: mongodb-init
   annotations:
-    "helm.sh/hook": post-install
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 spec:
-  activeDeadlineSeconds: 300
   template:
     spec:
-      restartPolicy: OnFailure
+      restartPolicy: Never
       containers:
         - name: mongo-init
-          image: mongo:5
-          command: ["sh", "-c"]
+          image: mongo:5.0.13
+          command: ["/bin/sh", "-c"]
           args:
             - |
-              echo "⏳ ממתין ש-mongodb-0 יהיה זמין ל-Replica Set..."
+              echo "🕒 מחכה ש-DNS יתייצב..."
+              sleep 10
 
-              for i in $(seq 1 40); do
-                STATUS=$(mongosh --host mongodb-0.mongodb.default.svc.cluster.local --quiet --eval "try { rs.status() } catch(e) { printjson(e); }")
-                if echo "$STATUS" | grep -q "NotYetInitialized"; then
-                  echo "❌ Replica Set עדיין לא מאותחל... מנסה שוב ($i)"
-                  sleep 3
-                else
-                  echo "✅ Mongo זמין ומוכן!"
-                  break
-                fi
+              echo "⏳ ממתין ש-mongodb-0 יהיה זמין ל-Replica Set..."
+              until mongosh --host mongodb-0.mongodb.default.svc.cluster.local --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+                echo "❌ mongodb-0 לא זמין עדיין... ממתין"
+                sleep 3
               done
 
-              echo "🔍 בודק אם כבר קיים Replica Set..."
-              INIT_OUTPUT=$(mongosh --host mongodb-0.mongodb.default.svc.cluster.local --quiet --eval "try { rs.status().ok } catch(e) { 0 }")
-              if [ "$INIT_OUTPUT" = "1" ]; then
-                echo "⚠️ Replica Set כבר מאותחל. יוצא..."
+              echo "✅ mongodb-0 זמין. ממשיך לבדוק אם rs כבר מאותחל..."
+
+              INIT_STATUS=$(mongosh --host mongodb-0.mongodb.default.svc.cluster.local --quiet --eval "try { rs.status() } catch(e) { e }")
+
+              if echo "$INIT_STATUS" | grep -q '"ok" : 1'; then
+                echo "✔️ ReplicaSet כבר מאותחל. מסיים Job."
                 exit 0
               fi
 
-              echo "🚀 מריץ rs.initiate()..."
+              echo "🚀 מפעיל rs.initiate()..."
               mongosh --host mongodb-0.mongodb.default.svc.cluster.local --eval '
                 rs.initiate({
                   _id: "rs0",
@@ -47,4 +45,4 @@ spec:
                   ]
                 })
               '
-              echo "✅ Replica Set מאותחל!"
+              echo "✅ Replica Set מאותחל בהצלחה!"
