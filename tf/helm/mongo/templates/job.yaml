@@ -24,23 +24,21 @@ spec:
                 done
               done
 
-              echo "בודק אם ה-Replica Set כבר מאותחל..."
-              INIT_OUTPUT=$(mongosh --host "mongodb-0.mongodb" --quiet --eval "JSON.stringify(rs.status())" || true)
-
-              if echo "$INIT_OUTPUT" | grep -q '"ok":1'; then
-                echo "ReplicaSet כבר מאותחל. יוצא."
-                exit 0
-              fi
-
-              echo "מאתחל Replica Set..."
+              echo "בודק אם ה-Replica Set מאותחל..."
               mongosh --host "mongodb-0.mongodb" --eval '
-                rs.initiate({
-                  _id: "rs0",
-                  members: [
-                    { _id: 0, host: "mongodb-0.mongodb:27017" },
-                    { _id: 1, host: "mongodb-1.mongodb:27017" },
-                    { _id: 2, host: "mongodb-2.mongodb:27017" }
-                  ]
-                })
+                try {
+                  rs.status();
+                  print("Replica Set כבר מאותחל. יוצא.");
+                } catch (e) {
+                  print("מאתחל Replica Set...");
+                  rs.initiate({
+                    _id: "rs0",
+                    members: [
+                      { _id: 0, host: "mongodb-0.mongodb:27017" },
+                      { _id: 1, host: "mongodb-1.mongodb:27017" },
+                      { _id: 2, host: "mongodb-2.mongodb:27017" }
+                    ]
+                  });
+                  print("Replica Set מאותחל!");
+                }
               '
-              echo "Replica Set מאותחל!"
