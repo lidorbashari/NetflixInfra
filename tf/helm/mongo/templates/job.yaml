@@ -2,28 +2,39 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: mongodb-init
+  annotations:
+    # Helm hook שיריץ את ה-Job אחרי ההתקנה וימחק אותו בהצלחה
+    "helm.sh/hook": post-install
+    "helm.sh/hook-delete-policy": hook-succeeded
 spec:
   template:
     spec:
-      restartPolicy: Never
+      restartPolicy: OnFailure
       containers:
         - name: mongo-init
           image: mongo:5
-          command: ["sh", "-c"]
+          command: ["/bin/sh", "-c"]
           args:
             - |
-              echo "מחכה שהפודים יהיו מוכנים..."
-              until mongosh --host mongodb-0.mongodb.default.svc.cluster.local --eval "print('MongoDB is up')" >/dev/null 2>&1; do
-                sleep 2
-              done
+              echo "מחכה ש-mongodb-0 יהיה מוכן..."
               
-              echo "מריץ rs.initiate()..."
-              mongosh --host mongodb-0.mongodb.default.svc.cluster.local --eval '
+              # לולאה פשוטה שמחכה רק לפוד הראשי
+              until mongosh --host "mongodb-0.mongodb" --eval "db.adminCommand('ping')" --quiet > /dev/null 2>&1; do
+                sleep 2
+                echo -n "."
+              done
+
+              echo "" # לשורה חדשה
+              echo "mongodb-0 מוכן. מאתחל את ה-Replica Set..."
+
+              # פקודת האיתחול
+              mongosh --host "mongodb-0.mongodb" --eval '
               rs.initiate({
                 _id: "rs0",
                 members: [
-                  { _id: 0, host: "mongodb-0.mongodb.default.svc.cluster.local:27017", priority: 2 },
-                  { _id: 1, host: "mongodb-1.mongodb.default.svc.cluster.local:27017", priority: 1 },
-                  { _id: 2, host: "mongodb-2.mongodb.default.svc.cluster.local:27017", priority: 1 }
+                  { _id: 0, host: "mongodb-0.mongodb:27017" },
+                  { _id: 1, host: "mongodb-1.mongodb:27017" },
+                  { _id: 2, host: "mongodb-2.mongodb:27017" }
                 ]
-              })'
+              });
+              '
