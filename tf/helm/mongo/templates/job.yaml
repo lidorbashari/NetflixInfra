@@ -16,8 +16,8 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
-              echo "🕒 מחכה ש-DNS יתייצב..."
-              sleep 10
+              echo "🕒 מחכה 15 שניות ש-DNS יתייצב..."
+              sleep 15
 
               echo "⏳ ממתין ש-mongodb-0 יהיה זמין ל-Replica Set..."
               until mongosh --host mongodb-0.mongodb.default.svc.cluster.local --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
@@ -25,16 +25,16 @@ spec:
                 sleep 3
               done
 
-              echo "✅ mongodb-0 זמין. ממשיך לבדוק אם rs כבר מאותחל..."
+              echo "✅ mongodb-0 זמין. בודק אם rs כבר מאותחל..."
 
-              INIT_STATUS=$(mongosh --host mongodb-0.mongodb.default.svc.cluster.local --quiet --eval "try { rs.status() } catch(e) { e }")
+              INIT_OUTPUT=$(mongosh --host mongodb-0.mongodb.default.svc.cluster.local --quiet --eval "try { rs.status().ok } catch(e) { 0 }")
 
-              if echo "$INIT_STATUS" | grep -q '"ok" : 1'; then
-                echo "✔️ ReplicaSet כבר מאותחל. מסיים Job."
+              if [ "$INIT_OUTPUT" = "1" ]; then
+                echo "✔️ ReplicaSet כבר מאותחל. מסיים."
                 exit 0
               fi
 
-              echo "🚀 מפעיל rs.initiate()..."
+              echo "🚀 מבצע rs.initiate()..."
               mongosh --host mongodb-0.mongodb.default.svc.cluster.local --eval '
                 rs.initiate({
                   _id: "rs0",
