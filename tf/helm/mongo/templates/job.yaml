@@ -3,12 +3,12 @@ kind: Job
 metadata:
   name: mongodb-init
   annotations:
-    "helm.sh/hook": post-install
-    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation  # שומר את ה-Job אחרי הרצה
 spec:
   template:
     spec:
-      restartPolicy: OnFailure
+      restartPolicy: Never
       containers:
         - name: mongo-init
           image: mongo:5.0.13
@@ -16,29 +16,17 @@ spec:
           args:
             - |
               echo "נותן ל-DNS להתייצב (10 שניות)..."
-              sleep 30
+              sleep 10
+
               echo "מנסה לאתחל את ה-Replica Set..."
-              # לולאה שמנסה לאתחל עד הצלחה
-              until mongosh --host "mongodb-0.mongodb" --eval '
-                try {
-                  rs.initiate({
-                    _id: "rs0",
-                    members: [
-                      { _id: 0, host: "mongodb-0.mongodb:27017" },
-                      { _id: 1, host: "mongodb-1.mongodb:27017" },
-                      { _id: 2, host: "mongodb-2.mongodb:27017" }
-                    ]
-                  });
-                  print("ReplicaSet initiated successfully!");
-                } catch (e) {
-                  if (e.codeName === "AlreadyInitialized") {
-                    print("ReplicaSet is already initialized.");
-                    process.exit(0);
-                  }
-                  throw "Failed to initiate, will retry: " + e.message;
-                }
-              ' > /dev/null; do
-                sleep 5
-                echo "האיתחול נכשל, מנסה שוב..."
-              done
-              echo "✅ ה-Replica Set מוכן."
+              mongosh --host mongodb-0.mongodb.default.svc.cluster.local --eval '
+                rs.initiate({
+                  _id: "rs0",
+                  members: [
+                    { _id: 0, host: "mongodb-0.mongodb.default.svc.cluster.local:27017", priority: 2 },
+                    { _id: 1, host: "mongodb-1.mongodb.default.svc.cluster.local:27017", priority: 1 },
+                    { _id: 2, host: "mongodb-2.mongodb.default.svc.cluster.local:27017", priority: 1 }
+                  ]
+                })
+              '
+              echo "✅ סיום אתחול Replica Set."
