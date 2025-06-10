@@ -4,7 +4,6 @@ metadata:
   name: mongodb-init
   annotations:
     "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "10"
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 spec:
   template:
@@ -16,8 +15,11 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
-              echo "🕒 מחכה 15 שניות ש-DNS יתייצב..."
-              sleep 15
+              echo "🕒 מחכה 60 שניות ש-DNS יתייצב..."
+              sleep 60
+
+              echo "🔍 בדיקת DNS..."
+              getent hosts mongodb-0.mongodb.default.svc.cluster.local || { echo "❌ DNS לא מגיב. יוצא."; exit 1; }
 
               echo "⏳ ממתין ש-mongodb-0 יהיה זמין ל-Replica Set..."
               until mongosh --host mongodb-0.mongodb.default.svc.cluster.local --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
@@ -26,7 +28,6 @@ spec:
               done
 
               echo "✅ mongodb-0 זמין. בודק אם rs כבר מאותחל..."
-
               INIT_OUTPUT=$(mongosh --host mongodb-0.mongodb.default.svc.cluster.local --quiet --eval "try { rs.status().ok } catch(e) { 0 }")
 
               if [ "$INIT_OUTPUT" = "1" ]; then
@@ -45,4 +46,5 @@ spec:
                   ]
                 })
               '
-              echo "✅ Replica Set מאותחל בהצלחה!"
+
+              echo "✅ ReplicaSet מאותחל בהצלחה!"
