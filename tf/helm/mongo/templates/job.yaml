@@ -16,10 +16,12 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
-              echo "בודק זמינות של mongodb-0..."
-              until mongosh --host "mongodb-0.mongodb" --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
-                echo "Mongo עדיין לא זמין... מחכה 5 שניות"
-                sleep 5
+              echo "בודק זמינות של כל הפודים..."
+              for i in 0 1 2; do
+                until mongosh --host "mongodb-$i.mongodb" --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+                  echo "mongodb-$i לא זמין עדיין... ממתין"
+                  sleep 3
+                done
               done
 
               echo "בודק אם ה-Replica Set כבר מאותחל..."
