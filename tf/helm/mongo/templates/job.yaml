@@ -2,10 +2,14 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: mongodb-init
+  labels:
+    app: mongodb
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
+    "helm.sh/hook-weight": "10"
 spec:
+  backoffLimit: 3
   template:
     spec:
       restartPolicy: Never
@@ -18,8 +22,20 @@ spec:
               echo "🕒 מחכה 60 שניות ש-DNS יתייצב..."
               sleep 60
 
-              echo "🔍 בדיקת DNS..."
-              getent hosts mongodb-0.mongodb.default.svc.cluster.local || { echo "❌ DNS לא מגיב. יוצא."; exit 1; }
+              echo "🔁 ממתין ש-DNS יתייצב ל-mongodb-0..."
+              for i in $(seq 1 30); do
+                if getent hosts mongodb-0.mongodb.default.svc.cluster.local > /dev/null 2>&1; then
+                  echo "✅ DNS עבד בהצלחה."
+                  break
+                fi
+                echo "❌ DNS עדיין לא זמין... מנסה שוב בעוד 2 שניות ($i/30)"
+                sleep 2
+              done
+
+              if ! getent hosts mongodb-0.mongodb.default.svc.cluster.local > /dev/null 2>&1; then
+                echo "⛔ לא הצליח למצוא את mongodb-0 גם אחרי 60 שניות. יוצא."
+                exit 1
+              fi
 
               echo "⏳ ממתין ש-mongodb-0 יהיה זמין ל-Replica Set..."
               until mongosh --host mongodb-0.mongodb.default.svc.cluster.local --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
@@ -28,6 +44,7 @@ spec:
               done
 
               echo "✅ mongodb-0 זמין. בודק אם rs כבר מאותחל..."
+
               INIT_OUTPUT=$(mongosh --host mongodb-0.mongodb.default.svc.cluster.local --quiet --eval "try { rs.status().ok } catch(e) { 0 }")
 
               if [ "$INIT_OUTPUT" = "1" ]; then
@@ -46,5 +63,4 @@ spec:
                   ]
                 })
               '
-
-              echo "✅ ReplicaSet מאותחל בהצלחה!"
+              echo "✅ Replica Set מאותחל בהצלחה!"
