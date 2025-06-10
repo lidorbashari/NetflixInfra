@@ -4,47 +4,34 @@ metadata:
   name: mongodb-init
   annotations:
     "helm.sh/hook": post-install
-    "helm.sh/hook-delete-policy": hook-succeeded
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 spec:
-  # מגדיר שה-Job ייכשל אם הוא רץ יותר מדי זמן
-  activeDeadlineSeconds: 300 # 5 דקות
+  activeDeadlineSeconds: 300
   template:
     spec:
       restartPolicy: OnFailure
       containers:
         - name: mongo-init
-          image: mongo:5
+          image: mongo:6.0.13  # עדכן לגרסה שתומכת ב-mongosh
           command: ["/bin/sh", "-c"]
           args:
             - |
-              echo "מנסה לאתחל את ה-Replica Set..."
-              
-              # לולאה שמנסה לאתחל עד שהיא מצליחה
+              echo "בודק אם ה-Replica Set מאותחל..."
               until mongosh --host "mongodb-0.mongodb" --eval '
-                try {
-                  var cfg = {
+                if (!rs.status().ok) {
+                  rs.initiate({
                     _id: "rs0",
                     members: [
                       { _id: 0, host: "mongodb-0.mongodb:27017" },
                       { _id: 1, host: "mongodb-1.mongodb:27017" },
                       { _id: 2, host: "mongodb-2.mongodb:27017" }
                     ]
-                  };
-                  rs.initiate(cfg);
-                  print("ReplicaSet initiated successfully!");
-                } catch (e) {
-                  if (e.codeName === "AlreadyInitialized") {
-                    print("ReplicaSet is already initialized.");
-                    // אם כבר מאותחל, זו הצלחה, צא מהלולאה
-                    process.exit(0);
-                  }
-                  // אם זו שגיאה אחרת, כנראה שהפוד עוד לא מוכן.
-                  // זרוק שגיאה כדי שה-until ימשיך לנסות.
-                  throw "Failed to initiate: " + e.message;
+                  });
+                } else {
+                  print("ReplicaSet כבר מאותחל.");
                 }
-              ' > /dev/null; do
+              ' > /dev/null 2>&1; do
+                echo "עדיין לא מוכן, מנסה שוב בעוד 5 שניות..."
                 sleep 5
-                echo "האיתחול נכשל, מנסה שוב בעוד 5 שניות..."
               done
-
-              echo "ה-Replica Set מוכן."
+              echo "Replica Set מאותחל!"
