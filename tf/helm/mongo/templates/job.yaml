@@ -2,65 +2,41 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: mongodb-init
-  labels:
-    app: mongodb
   annotations:
-    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook": post-install
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
-    "helm.sh/hook-weight": "10"
 spec:
-  backoffLimit: 3
   template:
     spec:
-      restartPolicy: Never
+      restartPolicy: OnFailure
       containers:
         - name: mongo-init
           image: mongo:5.0.13
           command: ["/bin/sh", "-c"]
           args:
             - |
-              echo "🕒 מחכה 60 שניות ש-DNS יתייצב..."
-              sleep 60
-
-              echo "🔁 ממתין ש-DNS יתייצב ל-mongodb-0..."
-              for i in $(seq 1 30); do
-                if getent hosts mongodb-0.mongodb.default.svc.cluster.local > /dev/null 2>&1; then
-                  echo "✅ DNS עבד בהצלחה."
-                  break
-                fi
-                echo "❌ DNS עדיין לא זמין... מנסה שוב בעוד 2 שניות ($i/30)"
-                sleep 2
+              echo "מנסה לאתחל את ה-Replica Set..."
+              # לולאה שמנסה לאתחל עד הצלחה
+              until mongosh --host "mongodb-0.mongodb" --eval '
+                try {
+                  rs.initiate({
+                    _id: "rs0",
+                    members: [
+                      { _id: 0, host: "mongodb-0.mongodb:27017" },
+                      { _id: 1, host: "mongodb-1.mongodb:27017" },
+                      { _id: 2, host: "mongodb-2.mongodb:27017" }
+                    ]
+                  });
+                  print("ReplicaSet initiated successfully!");
+                } catch (e) {
+                  if (e.codeName === "AlreadyInitialized") {
+                    print("ReplicaSet is already initialized.");
+                    process.exit(0);
+                  }
+                  throw "Failed to initiate, will retry: " + e.message;
+                }
+              ' > /dev/null; do
+                sleep 5
+                echo "האיתחול נכשל, מנסה שוב..."
               done
-
-              if ! getent hosts mongodb-0.mongodb.default.svc.cluster.local > /dev/null 2>&1; then
-                echo "⛔ לא הצליח למצוא את mongodb-0 גם אחרי 60 שניות. יוצא."
-                exit 1
-              fi
-
-              echo "⏳ ממתין ש-mongodb-0 יהיה זמין ל-Replica Set..."
-              until mongosh --host mongodb-0.mongodb.default.svc.cluster.local --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
-                echo "❌ mongodb-0 לא זמין עדיין... ממתין"
-                sleep 3
-              done
-
-              echo "✅ mongodb-0 זמין. בודק אם rs כבר מאותחל..."
-
-              INIT_OUTPUT=$(mongosh --host mongodb-0.mongodb.default.svc.cluster.local --quiet --eval "try { rs.status().ok } catch(e) { 0 }")
-
-              if [ "$INIT_OUTPUT" = "1" ]; then
-                echo "✔️ ReplicaSet כבר מאותחל. מסיים."
-                exit 0
-              fi
-
-              echo "🚀 מבצע rs.initiate()..."
-              mongosh --host mongodb-0.mongodb.default.svc.cluster.local --eval '
-                rs.initiate({
-                  _id: "rs0",
-                  members: [
-                    { _id: 0, host: "mongodb-0.mongodb.default.svc.cluster.local:27017", priority: 2 },
-                    { _id: 1, host: "mongodb-1.mongodb.default.svc.cluster.local:27017", priority: 1 },
-                    { _id: 2, host: "mongodb-2.mongodb.default.svc.cluster.local:27017", priority: 1 }
-                  ]
-                })
-              '
-              echo "✅ Replica Set מאותחל בהצלחה!"
+              echo "✅ ה-Replica Set מוכן."
