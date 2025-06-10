@@ -2,33 +2,39 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: mongodb-init
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
 spec:
+  activeDeadlineSeconds: 300
   template:
     spec:
-      restartPolicy: Never
+      restartPolicy: OnFailure
       containers:
         - name: mongo-init
           image: mongo:5
           command: ["sh", "-c"]
           args:
             - |
-              echo "מחכה שהפודים יהיו מוכנים..."
-              for i in 0 1 2; do
-                until mongosh --host "mongodb-$i.mongodb.default.svc.cluster.local" --eval "db.adminCommand('ping')" >/dev/null 2>&1; do
-                  echo "mongodb-$i לא זמין עדיין... ממתין"
-                  sleep 2
-                done
+              echo "⏳ ממתין ש-mongodb-0 יהיה מוכן לחיבורים..."
+              for i in $(seq 1 40); do
+                if mongosh --host mongodb-0.mongodb.default.svc.cluster.local --eval "db.adminCommand('ping')" > /dev/null 2>&1; then
+                  echo "✅ Mongo מוכן!"
+                  break
+                fi
+                echo "📌 mongodb-0 עדיין לא מוכן ($i)..."
+                sleep 3
               done
 
-              echo "בודק אם ה-Replica Set כבר מאותחל..."
-              INIT_STATUS=$(mongosh --host "mongodb-0.mongodb.default.svc.cluster.local" --quiet --eval "try { rs.status().ok } catch(e) { 0 }")
+              echo "🔍 בודק אם ה-Replica Set כבר מאותחל..."
+              INIT_OUTPUT=$(mongosh --host mongodb-0.mongodb.default.svc.cluster.local --quiet --eval "try { rs.status() } catch(e) { e }")
 
-              if [ "$INIT_STATUS" = "1" ]; then
-                echo "Replica Set כבר מאותחל. יוצא."
+              if echo "$INIT_OUTPUT" | grep -q '"ok" : 1'; then
+                echo "⚠️ Replica Set כבר מאותחל. יוצא..."
                 exit 0
               fi
 
-              echo "מריץ rs.initiate()..."
+              echo "🚀 מאתחל Replica Set..."
               mongosh --host mongodb-0.mongodb.default.svc.cluster.local --eval '
                 rs.initiate({
                   _id: "rs0",
@@ -39,5 +45,4 @@ spec:
                   ]
                 })
               '
-
-              echo "Replica Set מאותחל בהצלחה!"
+              echo "✅ Replica Set מאותחל בהצלחה!"
